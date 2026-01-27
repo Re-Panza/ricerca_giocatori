@@ -133,13 +133,13 @@
         async function loadDB() {
             const stato = document.getElementById('stato');
             try {
-                // Usiamo l'URL del file con un parametro casuale per saltare la cache
+                // Carichiamo il file aggiungendo un numero casuale per evitare la cache
                 const url = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now();
                 const risposta = await fetch(url);
                 
-                if (!risposta.ok) throw new Error();
+                if (!risposta.ok) throw new Error("File non trovato");
 
-                // Recuperiamo la data dall'header "Last-Modified" (è fornita direttamente dal server)
+                // Leggiamo la data dell'ultima modifica del file dal server
                 const dataHeader = risposta.headers.get('Last-Modified');
                 let dataInfo = "Data non disponibile";
                 
@@ -152,14 +152,20 @@
                 }
 
                 db = await risposta.json();
+
+                // Controllo integrità: se il database è troppo piccolo avvisa
+                let alertScansione = "";
+                if (db.length < 15000) { 
+                    alertScansione = "<br><b style='color:#ff9800;'>⚠️ Database parziale (scansione in corso)</b>";
+                }
                 
-                stato.innerHTML = `✅ Database Online (${db.length.toLocaleString()} castelli)<br>
+                stato.innerHTML = `✅ Database Pronto (${db.length.toLocaleString()} castelli)${alertScansione}<br>
                                    <small style="color:#aaa;">Ultima scansione: ${dataInfo}</small>`;
                 stato.style.color = "#4caf50";
             } catch (err) {
-                stato.innerHTML = "❌ Errore caricamento database.";
+                stato.innerHTML = "❌ Errore caricamento database. Controlla che il file JSON sia pubblico.";
                 stato.style.color = "#f44336";
-                console.error(err);
+                console.error("Errore Fetch:", err);
             }
         }
                 
