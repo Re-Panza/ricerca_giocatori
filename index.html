@@ -133,18 +133,36 @@
         async function loadDB() {
             const stato = document.getElementById('stato');
             try {
-                // Usa Math.random() per evitare la cache e avere dati freschi
-                const response = await fetch('https://re-panza.github.io/lk_tool/mondo327.json?nocache=' + Math.random());
-                if (!response.ok) throw new Error('Network response was not ok');
+                const url = 'https://re-panza.github.io/lk_tool/mondo327.json';
                 
-                db = await response.json();
+                // Chiediamo al server le info sul file (per la data) e il contenuto (per i dati)
+                const [respData, respInfo] = await Promise.all([
+                    fetch(url + '?nocache=' + Math.random()),
+                    fetch('https://api.github.com/repos/re-panza/lk_tool/commits?path=mondo327.json&page=1&per_page=1')
+                ]);
+
+                if (!respData.ok) throw new Error();
+                db = await respData.json();
+
+                // Estraiamo la data dell'ultimo commit
+                let dataInfo = "Data non disponibile";
+                if (respInfo.ok) {
+                    const commitData = await respInfo.json();
+                    if (commitData.length > 0) {
+                        const dataGrezza = new Date(commitData[0].commit.committer.date);
+                        dataInfo = dataGrezza.toLocaleString('it-IT', { 
+                            day: '2-digit', month: '2-digit', year: 'numeric', 
+                            hour: '2-digit', minute: '2-digit' 
+                        });
+                    }
+                }
                 
-                stato.innerHTML = "✅ Database Mondo 327 Pronto (" + db.length.toLocaleString() + " castelli)";
-                stato.style.color = "#4caf50"; // Verde
+                stato.innerHTML = `✅ Database Pronto (${db.length.toLocaleString()} castelli)<br>
+                                   <small style="color:#aaa;">Ultima scansione: ${dataInfo}</small>`;
+                stato.style.color = "#4caf50";
             } catch (err) {
-                stato.innerHTML = "❌ Errore connessione database. Ricarica la pagina.";
-                stato.style.color = "#f44336"; // Rosso
-                console.error(err);
+                stato.innerHTML = "❌ Errore connessione database.";
+                stato.style.color = "#f44336";
             }
         }
 
