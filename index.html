@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ricerca Giocatore - L&K</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #eee; padding: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: auto; background: #2a2a2a; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h2 { color: #ffcc00; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 5px; background: #333; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 5px; background: #ffcc00; color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #e6b800; }
+        #risultati { margin-top: 20px; }
+        .castello-item { background: #383838; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 4px solid #ffcc00; }
+        .castello-item a { color: #00ccff; text-decoration: none; font-weight: bold; }
+        .info-player { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Ricerca Intelligence</h2>
+    <p style="font-size: 0.9em; color: #bbb;">Incolla il link del profilo (es: l+k://player?605&327)</p>
+    
+    <input type="text" id="linkInput" placeholder="l+k://player?ID&MONDO">
+    <button onclick="analizza()">Cerca Castelli</button>
+
+    <div id="risultati"></div>
+</div>
+
+<script>
+async function analizza() {
+    const input = document.getElementById('linkInput').value;
+    const divRisultati = document.getElementById('risultati');
+    
+    // 1. Estraiamo l'ID dal link usando una Regex
+    // Cerca il numero dopo il punto di domanda e prima della e commerciale
+    const regex = /player\?(\d+)&/;
+    const match = input.match(regex);
+
+    if (!match) {
+        divRisultati.innerHTML = "<p style='color:red;'>Link non valido! Assicurati che sia nel formato l+k://player?605&327</p>";
+        return;
+    }
+
+    const playerID = parseInt(match[1]);
+    divRisultati.innerHTML = "<p>Interrogazione database in corso...</p>";
+
+    try {
+        // 2. Pesca il file JSON dalla repository della Home Page
+        // Sostituisci 'TUO-UTENTE' con il tuo vero nome GitHub
+        const urlJSON = 'https://https://re-panza.github.io/lk_tool/mondo327.json'; 
+        const risposta = await fetch(urlJSON);
+        const dati = await risposta.json();
+
+        // 3. Filtra i castelli per ID giocatore
+        const castelliTrovati = dati.filter(c => c.p === playerID);
+
+        if (castelliTrovati.length === 0) {
+            divRisultati.innerHTML = `<p>Nessun castello trovato per l'ID ${playerID}.</p>`;
+            return;
+        }
+
+        // 4. Mostra i risultati
+        let html = `
+            <div class="info-player">
+                <h3 style="margin:0;">Castelli trovati: ${castelliTrovati.length}</h3>
+                <small>ID Giocatore: ${playerID}</small>
+            </div>
+        `;
+
+        castelliTrovati.forEach(c => {
+            // Deep link per il castello
+            const deepLink = `l+k://coordinate?${c.x}&${c.y}&327`;
+            html += `
+                <div class="castello-item">
+                    <b>${c.n}</b><br>
+                    Coordinate: <a href="${deepLink}">${c.x}, ${c.y}</a>
+                </div>
+            `;
+        });
+
+        divRisultati.innerHTML = html;
+
+    } catch (errore) {
+        divRisultati.innerHTML = "<p style='color:red;'>Errore nel caricamento del database. Controlla l'URL della Home Page.</p>";
+        console.error(errore);
+    }
+}
+</script>
+
+</body>
+</html>
