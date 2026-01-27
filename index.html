@@ -216,25 +216,8 @@
                         </div>`;
 
             castelliTrovati.forEach(c => {
-                // 1. Pulizia del nome
-                let nomeVisuale = c.n ? c.n.trim() : "";
+                let nomeVisuale = (c.n && c.n.trim() !== "") ? c.n.trim() : "Habitat/Castello";
                 
-                // 2. Se il nome è vuoto, determiniamo il tipo dall'habitat (c.t)
-                if (nomeVisuale === "") {
-                    let tipoHabitat = "";
-                    switch(String(c.t)) {
-                        case "1": tipoHabitat = "Castello"; break;
-                        case "2": tipoHabitat = "Fortezza"; break;
-                        case "3": tipoHabitat = "Città"; break;
-                        default: tipoHabitat = "Habitat"; break;
-                    }
-                    
-                    // Gestione maschile/femminile per la dicitura "libero/a"
-                    let dicitura = (tipoHabitat === "Città" || tipoHabitat === "Fortezza") ? "libera" : "libero";
-                    nomeVisuale = `${tipoHabitat} ${dicitura}`;
-                }
-
-                // 3. Creazione dei link
                 const deepLinkVisual = `l+k://coordinates?${c.x},${c.y}&327`; 
                 const deepLinkActive = `l+k://coordinate?${c.x}&${c.y}&327`;
                 
