@@ -1,98 +1,75 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>L&K Intelligence - Mondo 327</title>
+    <title>L&K Scanner 327</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #121212; color: #e0e0e0; padding: 20px; display: flex; justify-content: center; }
-        .container { max-width: 500px; width: 100%; background: #1e1e1e; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); border: 1px solid #333; }
-        h2 { color: #ffcc00; text-align: center; margin-bottom: 5px; }
-        .status { text-align: center; font-size: 0.85em; margin-bottom: 20px; }
-        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #333; border-radius: 8px; background: #252525; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: #ffcc00; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 8px; background: #ffcc00; color: #000; font-weight: bold; cursor: pointer; font-size: 1em; }
-        button:hover { background: #e6b800; transform: translateY(-1px); }
-        #risultati { margin-top: 25px; }
-        .castello-item { background: #2a2a2a; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #ffcc00; transition: 0.2s; }
-        .castello-item:hover { background: #333; }
-        .castello-item b { color: #fff; display: block; margin-bottom: 5px; }
-        .castello-item a { color: #00ccff; text-decoration: none; font-weight: bold; font-family: monospace; font-size: 1.1em; }
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+        .box { max-width: 400px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { width: 94%; padding: 10px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        .res { margin-top: 20px; text-align: left; }
+        .item { background: #2a2a2a; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #ffcc00; }
+        a { color: #00ccff; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Mondo 327 Intelligence</h2>
-    <div id="status" class="status">Connessione in corso...</div>
+<div class="box">
+    <h2>Scanner 327</h2>
+    <div id="status" style="font-size: 0.8em; color: #888;">Caricamento database...</div>
     
-    <input type="text" id="linkInput" placeholder="Incolla link profilo giocatore...">
-    <button onclick="analizza()">TROVA CASTELLI</button>
+    <input type="text" id="link" placeholder="Incolla link giocatore qui">
+    <button onclick="cerca()">CERCA</button>
 
-    <div id="risultati"></div>
+    <div id="risultati" class="res"></div>
 </div>
 
 <script>
-let databaseLocale = null;
+let database = [];
 
-// Caricamento database all'avvio
-async function caricaDatabase() {
-    const statusDiv = document.getElementById('status');
+// Funzione che scarica il file JSON
+async function inizializza() {
+    const status = document.getElementById('status');
     try {
-        // Puntiamo al file sulla tua repo lk_tool
-        const urlJSON = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now();
-        const risposta = await fetch(urlJSON);
-        
-        if (!risposta.ok) throw new Error();
-        
-        databaseLocale = await risposta.json();
-        statusDiv.innerHTML = "<span style='color:#4caf50;'>● Database Pronto (" + databaseLocale.length + " castelli)</span>";
+        const url = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now();
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error();
+        database = await resp.json();
+        status.innerHTML = "✅ Database Pronto: " + database.length + " castelli";
     } catch (e) {
-        statusDiv.innerHTML = "<span style='color:#f44336;'>● Errore: Database non trovato su lk_tool</span>";
+        status.innerHTML = "❌ Errore: File mondo327.json non trovato";
     }
 }
 
-caricaDatabase();
+inizializza();
 
-function analizza() {
-    const input = document.getElementById('linkInput').value;
-    const divRisultati = document.getElementById('risultati');
-
-    if (!databaseLocale) {
-        alert("Attendi che il database sia pronto!");
-        return;
-    }
-
-    // Estrae l'ID dal link l+k://player?605&327
-    const match = input.match(/player\?(\d+)/);
-
-    if (!match) {
-        divRisultati.innerHTML = "<p style='color:#ff9800; text-align:center;'>⚠️ Link non valido. Usa il link profilo del gioco.</p>";
-        return;
-    }
-
-    const playerID = parseInt(match[1]);
-    const filtrati = databaseLocale.filter(c => c.p === playerID);
-
-    if (filtrati.length === 0) {
-        divRisultati.innerHTML = `<p style='text-align:center;'>Nessun castello trovato per l'ID <b>${playerID}</b>.</p>`;
-        return;
-    }
-
-    let html = `<p style='text-align:center; color:#bbb;'>Giocatore trovato: <b>${filtrati.length} castelli</b></p>`;
+function cerca() {
+    const input = document.getElementById('link').value;
+    const resDiv = document.getElementById('risultati');
     
-    filtrati.forEach(c => {
-        const deepLink = `l+k://coordinate?${c.x}&${c.y}&327`;
-        html += `
-            <div class="castello-item">
-                <b>${c.n}</b>
-                <a href="${deepLink}">📍 ${c.x}:${c.y}</a>
-            </div>
-        `;
-    });
+    // Estrae l'ID dal link
+    const match = input.match(/player\?(\d+)/);
+    if (!match) {
+        resDiv.innerHTML = "⚠️ Link non valido!";
+        return;
+    }
 
-    divRisultati.innerHTML = html;
-    document.getElementById('linkInput').value = ""; // Pulisce il campo
+    const id = parseInt(match[1]);
+    const trovati = database.filter(c => c.p === id);
+
+    if (trovati.length === 0) {
+        resDiv.innerHTML = "Nessun castello per l'ID " + id;
+        return;
+    }
+
+    let html = "<b>Trovati: " + trovati.length + "</b><br><br>";
+    trovati.forEach(c => {
+        const link = "l+k://coordinate?" + c.x + "&" + c.y + "&327";
+        html += '<div class="item">' + c.n + '<br><a href="' + link + '">📍 ' + c.x + ':' + c.y + '</a></div>';
+    });
+    
+    resDiv.innerHTML = html;
 }
 </script>
 
