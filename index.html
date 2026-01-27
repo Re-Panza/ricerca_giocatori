@@ -1,87 +1,70 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ricerca Giocatore - L&K</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #eee; padding: 20px; line-height: 1.6; }
-        .container { max-width: 600px; margin: auto; background: #2a2a2a; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h2 { color: #ffcc00; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 5px; background: #333; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 5px; background: #ffcc00; color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #e6b800; }
-        #risultati { margin-top: 20px; }
-        .castello-item { background: #383838; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 4px solid #ffcc00; }
-        .castello-item a { color: #00ccff; text-decoration: none; font-weight: bold; }
-        .info-player { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h2>Ricerca Intelligence</h2>
-    <p style="font-size: 0.9em; color: #bbb;">Incolla il link del profilo (es: l+k://player?605&327)</p>
-    
-    <input type="text" id="linkInput" placeholder="l+k://player?ID&MONDO">
-    <button onclick="analizza()">Cerca Castelli</button>
-
-    <div id="risultati"></div>
-</div>
-
 <script>
-async function analizza() {
+let databaseLocale = null;
+
+async function caricaDatabase() {
+    const divRisultati = document.getElementById('risultati');
+    divRisultati.innerHTML = "<p style='color:#ffcc00;'>⚡ Connessione al database L&K...</p>";
+    
+    try {
+        // Usiamo l'URL RAW di GitHub che non ha blocchi CORS
+        const urlJSON = 'https://raw.githubusercontent.com/re-panza/lk_tool/main/mondo327.json?v=' + Date.now();
+        
+        const risposta = await fetch(urlJSON);
+        if (!risposta.ok) throw new Error("Server non raggiungibile");
+        
+        databaseLocale = await risposta.json();
+        divRisultati.innerHTML = "<p style='color:#00ff00;'>✅ Database Mondo 327 Pronto!</p>";
+    } catch (errore) {
+        divRisultati.innerHTML = "<p style='color:red;'>❌ Errore: Il database non risponde.<br><small>Assicurati che il file mondo327.json esista nella repo lk_tool.</small></p>";
+        console.error("Dettaglio errore:", errore);
+    }
+}
+
+// Avvio immediato
+caricaDatabase();
+
+function analizza() {
+    if (!databaseLocale) {
+        alert("Sto ancora scaricando i dati, riprova tra un secondo...");
+        return;
+    }
+
     const input = document.getElementById('linkInput').value;
     const divRisultati = document.getElementById('risultati');
     
-    // Estrae l'ID dal link l+k://player?605&327
+    // Estrae l'ID (prende i numeri dopo il ?)
     const regex = /player\?(\d+)/;
     const match = input.match(regex);
 
     if (!match) {
-        divRisultati.innerHTML = "<p style='color:red;'>Link non valido! Incolla il link profilo del gioco.</p>";
+        divRisultati.innerHTML = "<p style='color:red;'>⚠️ Formato link errato. Incolla il link del profilo giocatore.</p>";
         return;
     }
 
     const playerID = parseInt(match[1]);
-    divRisultati.innerHTML = "<p>🔍 Ricerca in corso nel database...</p>";
+    const castelliTrovati = databaseLocale.filter(c => c.p === playerID);
 
-    try {
-        // Indirizzo preciso del tuo file JSON sulla repo lk_tool
-        const urlJSON = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now(); 
-        
-        const risposta = await fetch(urlJSON);
-        if (!risposta.ok) throw new Error("File non trovato");
-        
-        const dati = await risposta.json();
-
-        // Filtra i castelli che hanno l'ID giocatore corrispondente
-        const castelliTrovati = dati.filter(c => c.p === playerID);
-
-        if (castelliTrovati.length === 0) {
-            divRisultati.innerHTML = `<p>Nessun castello trovato per l'ID <b>${playerID}</b> nel database attuale.</p>`;
-            return;
-        }
-
-        // Costruisce la lista dei risultati
-        let html = `<div class="info-player"><h3>Trovati ${castelliTrovati.length} castelli</h3></div>`;
-        
-        castelliTrovati.forEach(c => {
-            // Crea il link che apre direttamente il gioco alle coordinate
-            const deepLink = `l+k://coordinate?${c.x}&${c.y}&327`;
-            html += `
-                <div class="castello-item">
-                    <b style="color:#ffcc00;">${c.n}</b><br>
-                    <small>Coordinate:</small> <a href="${deepLink}">${c.x}, ${c.y}</a>
-                </div>
-            `;
-        });
-
-        divRisultati.innerHTML = html;
-
-    } catch (errore) {
-        divRisultati.innerHTML = "<p style='color:red;'>Errore: Impossibile leggere il database. Verifica che il file mondo327.json sia presente in lk_tool.</p>";
-        console.error(errore);
+    if (castelliTrovati.length === 0) {
+        divRisultati.innerHTML = `<p>Nessun castello trovato per l'ID <b>${playerID}</b>.</p>`;
+        return;
     }
+
+    let html = `<div style="text-align:center; padding:10px; border-bottom:1px solid #444; margin-bottom:15px;">
+                    <h3 style="margin:0; color:#ffcc00;">Trovati ${castelliTrovati.length} castelli</h3>
+                </div>`;
+    
+    castelliTrovati.forEach(c => {
+        const deepLink = `l+k://coordinate?${c.x}&${c.y}&327`;
+        html += `
+            <div style="background:#333; padding:10px; margin-bottom:8px; border-radius:8px; border-left:4px solid #ffcc00;">
+                <b style="font-size:1.1em;">${c.n}</b><br>
+                <a href="${deepLink}" style="color:#00ccff; text-decoration:none;">📍 Coordinate: ${c.x}, ${c.y}</a>
+            </div>
+        `;
+    });
+
+    divRisultati.innerHTML = html;
+    // Pulisce l'input per la prossima ricerca
+    document.getElementById('linkInput').value = "";
 }
 </script>
