@@ -47,31 +47,35 @@
 
         carica();
 
-        function cerca() {
-            const link = document.getElementById('inputLink').value;
-            const res = document.getElementById('risultati');
-            const m = link.match(/player\?(\d+)/);
-            
-            if (!m) {
-                alert("Link non valido!");
-                return;
-            }
+       function cerca() {
+    const link = document.getElementById('inputLink').value;
+    const res = document.getElementById('risultati');
+    const m = link.match(/player\?(\d+)/);
+    
+    if (!m) {
+        alert("Link non valido!");
+        return;
+    }
 
-            const id = parseInt(m[1]);
-            const trovati = db.filter(c => c.p === id);
+    const idCercato = m[1]; // Lo teniamo come testo per sicurezza
+    
+    // Filtriamo controllando sia se è numero che se è stringa nel JSON
+    const trovati = db.filter(c => {
+        return String(c.p) === String(idCercato);
+    });
 
-            if (trovati.length === 0) {
-                res.innerHTML = "Nessun castello trovato per ID " + id;
-                return;
-            }
+    if (trovati.length === 0) {
+        res.innerHTML = "<p style='text-align:center;'>Nessun castello trovato per ID " + idCercato + "<br><small>(Il database potrebbe non essere ancora aggiornato con questo giocatore)</small></p>";
+        return;
+    }
 
-            let h = "<b>Trovati: " + trovati.length + "</b><br><br>";
-            trovati.forEach(c => {
-                const url = "l+k://coordinate?" + c.x + "&" + c.y + "&327";
-                h += '<div class="castello"><b>' + c.n + '</b><br><a href="' + url + '">📍 Vai a ' + c.x + ':' + c.y + '</a></div>';
-            });
-            res.innerHTML = h;
-        }
+    let h = "<b>Trovati: " + trovati.length + "</b><br><br>";
+    trovati.forEach(c => {
+        const url = "l+k://coordinate?" + c.x + "&" + c.y + "&327";
+        h += '<div class="castello"><b>' + c.n + '</b><br><a href="' + url + '">📍 Vai a ' + c.x + ':' + c.y + '</a></div>';
+    });
+    res.innerHTML = h;
+}
     </script>
 </body>
 </html>
