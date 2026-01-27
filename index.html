@@ -1,26 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>L&K Scanner 327</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L&K Scanner</title>
     <style>
         body { background: #121212; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        .box { max-width: 400px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
-        button { width: 94%; padding: 10px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        .box { max-width: 400px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 15px; border: 1px solid #333; shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #333; color: white; }
+        button { width: 95%; padding: 12px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; color: black; }
         .res { margin-top: 20px; text-align: left; }
-        .item { background: #2a2a2a; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #ffcc00; }
-        a { color: #00ccff; text-decoration: none; font-weight: bold; }
+        .item { background: #2a2a2a; padding: 12px; margin: 8px 0; border-radius: 8px; border-left: 4px solid #ffcc00; }
+        a { color: #00ccff; text-decoration: none; font-weight: bold; font-family: monospace; }
+        #status { font-size: 0.8em; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="box">
     <h2>Scanner 327</h2>
-    <div id="status" style="font-size: 0.8em; color: #888;">Caricamento database...</div>
+    <div id="status">Caricamento dati...</div>
     
-    <input type="text" id="link" placeholder="Incolla link giocatore qui">
-    <button onclick="cerca()">CERCA</button>
+    <input type="text" id="link" placeholder="Incolla link profilo">
+    <button onclick="cerca()">CERCA GIOCATORE</button>
 
     <div id="risultati" class="res"></div>
 </div>
@@ -28,17 +30,19 @@
 <script>
 let database = [];
 
-// Funzione che scarica il file JSON
 async function inizializza() {
     const status = document.getElementById('status');
     try {
-        const url = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now();
+        // Indirizzo corretto verso lk_tool
+        const url = 'https://re-panza.github.io/lk_tool/mondo327.json?nocache=' + Math.random();
         const resp = await fetch(url);
         if (!resp.ok) throw new Error();
         database = await resp.json();
-        status.innerHTML = "✅ Database Pronto: " + database.length + " castelli";
+        status.innerHTML = "✅ Database Pronto (" + database.length + " castelli)";
+        status.style.color = "#4caf50";
     } catch (e) {
-        status.innerHTML = "❌ Errore: File mondo327.json non trovato";
+        status.innerHTML = "❌ Errore: File non trovato in lk_tool";
+        status.style.color = "#f44336";
     }
 }
 
@@ -48,28 +52,28 @@ function cerca() {
     const input = document.getElementById('link').value;
     const resDiv = document.getElementById('risultati');
     
-    // Estrae l'ID dal link
     const match = input.match(/player\?(\d+)/);
     if (!match) {
-        resDiv.innerHTML = "⚠️ Link non valido!";
+        resDiv.innerHTML = "<p style='color:orange;'>⚠️ Incolla un link valido!</p>";
         return;
     }
 
-    const id = parseInt(match[1]);
-    const trovati = database.filter(c => c.p === id);
+    const idCercato = parseInt(match[1]);
+    const trovati = database.filter(c => c.p === idCercato);
 
     if (trovati.length === 0) {
-        resDiv.innerHTML = "Nessun castello per l'ID " + id;
+        resDiv.innerHTML = "Nessun castello per ID: " + idCercato;
         return;
     }
 
-    let html = "<b>Trovati: " + trovati.length + "</b><br><br>";
+    let html = "<b>Trovati: " + trovati.length + "</b><br>";
     trovati.forEach(c => {
-        const link = "l+k://coordinate?" + c.x + "&" + c.y + "&327";
-        html += '<div class="item">' + c.n + '<br><a href="' + link + '">📍 ' + c.x + ':' + c.y + '</a></div>';
+        const linkLK = "l+k://coordinate?" + c.x + "&" + c.y + "&327";
+        html += '<div class="item">' + c.n + '<br><a href="' + linkLK + '">📍 ' + c.x + ':' + c.y + '</a></div>';
     });
     
     resDiv.innerHTML = html;
+    document.getElementById('link').value = ""; 
 }
 </script>
 
