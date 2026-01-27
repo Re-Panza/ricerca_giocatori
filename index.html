@@ -5,102 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ricerca Giocatore - L&K Tool</title>
     <style>
-        /* Stile Dark/Gold coerente con il resto del progetto */
-        body { 
-            background-color: #121212; 
-            color: #e0e0e0; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            text-align: center; 
-        }
-
-        /* Bottone Home in alto */
-        .nav-home {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #ffcc00;
-            text-decoration: none;
-            font-weight: bold;
-            border: 1px solid #ffcc00;
-            padding: 8px 15px;
-            border-radius: 5px;
-            transition: 0.3s;
-        }
+        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .nav-home { display: inline-block; margin-bottom: 20px; color: #ffcc00; text-decoration: none; font-weight: bold; border: 1px solid #ffcc00; padding: 8px 15px; border-radius: 5px; transition: 0.3s; }
         .nav-home:hover { background: #ffcc00; color: #000; }
-
-        /* Contenitore principale */
-        .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            background: #1e1e1e; 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6); 
-            border: 1px solid #333;
-        }
-
+        .container { max-width: 600px; margin: 0 auto; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); border: 1px solid #333; }
         h2 { color: #ffcc00; margin-top: 0; }
-        
-        /* Area di testo per incollare comodamente */
-        textarea { 
-            width: 100%; 
-            height: 80px; 
-            padding: 12px; 
-            margin: 15px 0; 
-            border-radius: 8px; 
-            border: 1px solid #444; 
-            background: #2b2b2b; 
-            color: #fff; 
-            box-sizing: border-box; 
-            resize: none; /* Blocca il ridimensionamento */
-            font-family: monospace;
-        }
+        textarea { width: 100%; height: 80px; padding: 12px; margin: 15px 0; border-radius: 8px; border: 1px solid #444; background: #2b2b2b; color: #fff; box-sizing: border-box; resize: none; font-family: monospace; }
         textarea:focus { outline: none; border-color: #ffcc00; }
-
-        /* Bottone Cerca */
-        .btn-cerca { 
-            width: 100%; 
-            padding: 15px; 
-            background: #ffcc00; 
-            border: none; 
-            font-weight: bold; 
-            font-size: 1.1em;
-            border-radius: 8px; 
-            cursor: pointer; 
-            color: #000; 
-            transition: transform 0.2s;
-        }
+        .btn-cerca { width: 100%; padding: 15px; background: #ffcc00; border: none; font-weight: bold; font-size: 1.1em; border-radius: 8px; cursor: pointer; color: #000; transition: transform 0.2s; }
         .btn-cerca:hover { background: #e6b800; transform: translateY(-2px); }
-
-        /* Stato del Database */
         #stato { font-size: 0.9em; margin-bottom: 10px; color: #888; }
-
-        /* Stile dei Risultati */
         .risultati-box { margin-top: 25px; text-align: left; }
-        
-        .castello-card { 
-            background: #252525; 
-            padding: 15px; 
-            margin-bottom: 15px; 
-            border-radius: 8px; 
-            border-left: 5px solid #ffcc00; 
-            word-break: break-all; /* Per evitare che i link lunghi rompano la grafica */
-        }
-        
+        .castello-card { background: #252525; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid #ffcc00; word-break: break-all; }
         .castello-nome { font-weight: bold; color: #fff; margin-bottom: 5px; display: block; }
-        
-        .castello-link { 
-            color: #00ccff; 
-            text-decoration: none; 
-            font-family: monospace; 
-            font-size: 0.95em; 
-            display: block;
-            margin-top: 5px;
-        }
+        .castello-link { color: #00ccff; text-decoration: none; font-family: monospace; font-size: 0.95em; display: block; margin-top: 5px; }
         .castello-link:hover { text-decoration: underline; }
-
-        /* Footer PayPal */
         .footer { margin-top: 30px; font-size: 0.8em; color: #666; }
         .paypal-btn { color: #ffcc00; text-decoration: none; font-weight: bold; }
     </style>
@@ -121,58 +40,48 @@
     </div>
 
     <div class="footer">
-        L&K Tool by Re Panza<br>
-        <br>
+        L&K Tool by Re Panza<br><br>
         <a href="https://www.paypal.com/paypalme/filippocutrupi" target="_blank" class="paypal-btn">☕ Offrimi un caffè su PayPal</a>
     </div>
 
     <script>
         let db = [];
 
-        // 1. Caricamento Database
+        // 1. Caricamento Database Ottimizzato
         async function loadDB() {
-    const stato = document.getElementById('stato');
-    try {
-        // Usiamo un timestamp per forzare il download del file nuovo
-        const url = 'https://re-panza.github.io/lk_tool/mondo327.json?nocache=' + Date.now();
-        const risposta = await fetch(url);
-        
-        if (!risposta.ok) throw new Error("File non trovato su GitHub");
-
-        const testoGrezzo = await risposta.text();
-        
-        // --- PULIZIA DEFINITIVA ---
-        // Rimuove eventuali messaggi di errore PHP o caratteri invisibili
-        const inizioJson = testoGrezzo.indexOf('[');
-        const fineJson = testoGrezzo.lastIndexOf(']');
-        
-        if (inizioJson === -1) {
-            stato.innerHTML = "⚠️ Il database è ancora vuoto. Avvia lo scanner!";
-            return;
-        }
-
-        const jsonPulito = testoGrezzo.substring(inizioJson, fineJson + 1);
-        db = JSON.parse(jsonPulito);
-
-        stato.innerHTML = `✅ Database Pronto (${db.length.toLocaleString()} castelli)`;
-        stato.style.color = "#4caf50";
-
-    } catch (err) {
-        console.error("Errore di caricamento:", err);
-        stato.innerHTML = "❌ Errore critico nel file JSON.<br><small>Controlla la console (F12)</small>";
-        stato.style.color = "#f44336";
-    }
-}
+            const stato = document.getElementById('stato');
+            try {
+                // Forziamo il caricamento dell'ultima versione
+                const url = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now();
+                const risposta = await fetch(url);
                 
-                stato.innerHTML = `✅ Database Pronto (${db.length.toLocaleString()} castelli)<br>
-                                   <small style="color:#aaa;">Ultima scansione: ${dataInfo}</small>`;
+                if (!risposta.ok) throw new Error("File non trovato");
+
+                const testoGrezzo = await risposta.text();
+                
+                // Pulizia per evitare errori se il file ha scorie PHP
+                const inizioJson = testoGrezzo.indexOf('[');
+                const fineJson = testoGrezzo.lastIndexOf(']');
+                
+                if (inizioJson === -1) {
+                    stato.innerHTML = "⚠️ Database vuoto. Avvia lo scanner!";
+                    return;
+                }
+
+                const jsonPulito = testoGrezzo.substring(inizioJson, fineJson + 1);
+                db = JSON.parse(jsonPulito);
+
+                stato.innerHTML = `✅ Database Pronto (${db.length.toLocaleString()} castelli)`;
                 stato.style.color = "#4caf50";
+
             } catch (err) {
-                stato.innerHTML = "❌ Errore connessione database.";
+                console.error("Errore di caricamento:", err);
+                stato.innerHTML = "❌ Errore caricamento database.";
                 stato.style.color = "#f44336";
             }
         }
 
+        // Avvio automatico al caricamento
         loadDB();
 
         // 2. Funzione Cerca
@@ -180,45 +89,41 @@
             const input = document.getElementById('inputText').value;
             const resDiv = document.getElementById('risultati');
             
-            // Regex per trovare l'ID (cerca "player?" seguito da numeri)
+            // Trova l'ID Giocatore
             const matchID = input.match(/player\?(\d+)/);
             
-            // Regex opzionale per trovare il nome (prende tutto ciò che c'è dopo "Nome giocatore:")
-            // Se non lo trova nel testo incollato, useremo "Giocatore" generico
+            // Trova il Nome Giocatore (opzionale)
             const matchNome = input.match(/Nome giocatore:\s*(.*?)(\n|$)/);
-            const nomeGiocatore = matchNome ? matchNome[1].trim() : "Giocatore sconosciuto";
+            const nomeGiocatore = matchNome ? matchNome[1].trim() : "Giocatore";
 
             if (!matchID) {
-                alert("⚠️ Link non valido! Assicurati di aver incollato il link del profilo (l+k://player?...)");
+                alert("⚠️ Link non valido! Incolla il link del profilo (l+k://player?...)");
                 return;
             }
 
-            const idCercato = matchID[1]; // Teniamo come stringa per sicurezza
+            const idCercato = parseInt(matchID[1]);
             
-            // Filtra il database
-            // String(c.p) assicura che confrontiamo testo con testo
-            const castelliTrovati = db.filter(c => String(c.p) === idCercato);
+            // Filtro (togliamo il type 't' perché rimosso dallo scanner)
+            const castelliTrovati = db.filter(c => c.p === idCercato);
 
             if (castelliTrovati.length === 0) {
-                resDiv.innerHTML = `<p style="text-align:center;">Nessun castello trovato per l'ID <b>${idCercato}</b>.<br><small>Prova ad attendere il prossimo aggiornamento dello scanner.</small></p>`;
+                resDiv.innerHTML = `<p style="text-align:center;">Nessun castello trovato per l'ID <b>${idCercato}</b>.</p>`;
                 return;
             }
 
-            // Generazione HTML Risultati
             let html = `<div style="text-align:center; margin-bottom:20px; border-bottom:1px solid #444; padding-bottom:10px;">
                             <h3 style="margin:0; color:#fff;">${nomeGiocatore}</h3>
                             <small style="color:#aaa;">ID: ${idCercato} • Castelli: ${castelliTrovati.length}</small>
                         </div>`;
 
             castelliTrovati.forEach(c => {
-                let nomeVisuale = (c.n && c.n.trim() !== "") ? c.n.trim() : "Habitat/Castello";
-                
+                const nomeVisuale = (c.n && c.n.trim() !== "") ? c.n.trim() : "Castello";
                 const deepLinkVisual = `l+k://coordinates?${c.x},${c.y}&327`; 
                 const deepLinkActive = `l+k://coordinate?${c.x}&${c.y}&327`;
                 
                 html += `
                     <div class="castello-card">
-                        <span class="castello-nome">Nome: ${nomeVisuale}</span>
+                        <span class="castello-nome">${nomeVisuale}</span>
                         <a href="${deepLinkActive}" class="castello-link">${deepLinkVisual}</a>
                     </div>
                 `;
