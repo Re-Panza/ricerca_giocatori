@@ -1,70 +1,100 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L&K Intelligence - Mondo 327</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #121212; color: #e0e0e0; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 500px; width: 100%; background: #1e1e1e; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); border: 1px solid #333; }
+        h2 { color: #ffcc00; text-align: center; margin-bottom: 5px; }
+        .status { text-align: center; font-size: 0.85em; margin-bottom: 20px; }
+        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #333; border-radius: 8px; background: #252525; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: #ffcc00; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 8px; background: #ffcc00; color: #000; font-weight: bold; cursor: pointer; font-size: 1em; }
+        button:hover { background: #e6b800; transform: translateY(-1px); }
+        #risultati { margin-top: 25px; }
+        .castello-item { background: #2a2a2a; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #ffcc00; transition: 0.2s; }
+        .castello-item:hover { background: #333; }
+        .castello-item b { color: #fff; display: block; margin-bottom: 5px; }
+        .castello-item a { color: #00ccff; text-decoration: none; font-weight: bold; font-family: monospace; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Mondo 327 Intelligence</h2>
+    <div id="status" class="status">Connessione in corso...</div>
+    
+    <input type="text" id="linkInput" placeholder="Incolla link profilo giocatore...">
+    <button onclick="analizza()">TROVA CASTELLI</button>
+
+    <div id="risultati"></div>
+</div>
+
 <script>
 let databaseLocale = null;
 
+// Caricamento database all'avvio
 async function caricaDatabase() {
-    const divRisultati = document.getElementById('risultati');
-    divRisultati.innerHTML = "<p style='color:#ffcc00;'>⚡ Connessione al database L&K...</p>";
-    
+    const statusDiv = document.getElementById('status');
     try {
-        // Usiamo l'URL RAW di GitHub che non ha blocchi CORS
-        const urlJSON = 'https://raw.githubusercontent.com/re-panza/lk_tool/main/mondo327.json?v=' + Date.now();
-        
+        // Puntiamo al file sulla tua repo lk_tool
+        const urlJSON = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now();
         const risposta = await fetch(urlJSON);
-        if (!risposta.ok) throw new Error("Server non raggiungibile");
+        
+        if (!risposta.ok) throw new Error();
         
         databaseLocale = await risposta.json();
-        divRisultati.innerHTML = "<p style='color:#00ff00;'>✅ Database Mondo 327 Pronto!</p>";
-    } catch (errore) {
-        divRisultati.innerHTML = "<p style='color:red;'>❌ Errore: Il database non risponde.<br><small>Assicurati che il file mondo327.json esista nella repo lk_tool.</small></p>";
-        console.error("Dettaglio errore:", errore);
+        statusDiv.innerHTML = "<span style='color:#4caf50;'>● Database Pronto (" + databaseLocale.length + " castelli)</span>";
+    } catch (e) {
+        statusDiv.innerHTML = "<span style='color:#f44336;'>● Errore: Database non trovato su lk_tool</span>";
     }
 }
 
-// Avvio immediato
 caricaDatabase();
 
 function analizza() {
+    const input = document.getElementById('linkInput').value;
+    const divRisultati = document.getElementById('risultati');
+
     if (!databaseLocale) {
-        alert("Sto ancora scaricando i dati, riprova tra un secondo...");
+        alert("Attendi che il database sia pronto!");
         return;
     }
 
-    const input = document.getElementById('linkInput').value;
-    const divRisultati = document.getElementById('risultati');
-    
-    // Estrae l'ID (prende i numeri dopo il ?)
-    const regex = /player\?(\d+)/;
-    const match = input.match(regex);
+    // Estrae l'ID dal link l+k://player?605&327
+    const match = input.match(/player\?(\d+)/);
 
     if (!match) {
-        divRisultati.innerHTML = "<p style='color:red;'>⚠️ Formato link errato. Incolla il link del profilo giocatore.</p>";
+        divRisultati.innerHTML = "<p style='color:#ff9800; text-align:center;'>⚠️ Link non valido. Usa il link profilo del gioco.</p>";
         return;
     }
 
     const playerID = parseInt(match[1]);
-    const castelliTrovati = databaseLocale.filter(c => c.p === playerID);
+    const filtrati = databaseLocale.filter(c => c.p === playerID);
 
-    if (castelliTrovati.length === 0) {
-        divRisultati.innerHTML = `<p>Nessun castello trovato per l'ID <b>${playerID}</b>.</p>`;
+    if (filtrati.length === 0) {
+        divRisultati.innerHTML = `<p style='text-align:center;'>Nessun castello trovato per l'ID <b>${playerID}</b>.</p>`;
         return;
     }
 
-    let html = `<div style="text-align:center; padding:10px; border-bottom:1px solid #444; margin-bottom:15px;">
-                    <h3 style="margin:0; color:#ffcc00;">Trovati ${castelliTrovati.length} castelli</h3>
-                </div>`;
+    let html = `<p style='text-align:center; color:#bbb;'>Giocatore trovato: <b>${filtrati.length} castelli</b></p>`;
     
-    castelliTrovati.forEach(c => {
+    filtrati.forEach(c => {
         const deepLink = `l+k://coordinate?${c.x}&${c.y}&327`;
         html += `
-            <div style="background:#333; padding:10px; margin-bottom:8px; border-radius:8px; border-left:4px solid #ffcc00;">
-                <b style="font-size:1.1em;">${c.n}</b><br>
-                <a href="${deepLink}" style="color:#00ccff; text-decoration:none;">📍 Coordinate: ${c.x}, ${c.y}</a>
+            <div class="castello-item">
+                <b>${c.n}</b>
+                <a href="${deepLink}">📍 ${c.x}:${c.y}</a>
             </div>
         `;
     });
 
     divRisultati.innerHTML = html;
-    // Pulisce l'input per la prossima ricerca
-    document.getElementById('linkInput').value = "";
+    document.getElementById('linkInput').value = ""; // Pulisce il campo
 }
 </script>
+
+</body>
+</html>
