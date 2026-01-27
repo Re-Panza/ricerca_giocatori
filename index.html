@@ -4,78 +4,73 @@
     <meta charset="UTF-8">
     <title>L&K Scanner 327</title>
     <style>
-        body { background-color: #111; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        .box { max-width: 450px; margin: 0 auto; background: #222; padding: 20px; border-radius: 10px; border: 1px solid #444; }
-        input { width: 80%; padding: 12px; border-radius: 5px; border: none; margin-bottom: 10px; }
-        button { width: 85%; padding: 12px; background: #ffcc00; border: none; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        .info { margin: 15px 0; font-size: 0.9em; }
-        .risultato { text-align: left; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px; }
-        .castello { background: #333; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid #ffcc00; }
+        body { background-color: #111 !important; color: #fff !important; font-family: sans-serif; text-align: center; padding: 20px; }
+        #main-box { max-width: 450px; margin: 0 auto; background: #222; padding: 20px; border-radius: 10px; border: 1px solid #444; display: block !important; }
+        input { width: 80%; padding: 12px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #555; background: #333; color: white; }
+        button { width: 85%; padding: 12px; background: #ffcc00; border: none; font-weight: bold; border-radius: 5px; cursor: pointer; color: black; }
+        .info { margin: 15px 0; font-size: 0.9em; color: #aaa; }
+        .castello { background: #333; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid #ffcc00; text-align: left; }
         a { color: #00ccff; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="box">
+    <div id="main-box">
         <h2>Scanner Mondo 327</h2>
-        <div id="stato" class="info">Connessione in corso...</div>
+        <div id="stato" class="info">In attesa del database...</div>
         
-        <input type="text" id="inputLink" placeholder="Incolla link giocatore qui">
+        <input type="text" id="inputLink" placeholder="Incolla link profilo qui">
         <button onclick="cerca()">TROVA CASTELLI</button>
 
-        <div id="risultati" class="risultato"></div>
+        <div id="risultati" style="margin-top:20px;"></div>
     </div>
 
     <script>
+        // Log per vedere se il JS parte
+        console.log("Script avviato");
+        
         let db = [];
 
-        // Funzione di caricamento forzato
-        async function loadDB() {
+        async function carica() {
             const stato = document.getElementById('stato');
             try {
-                // Proviamo l'URL pubblico della tua lk_tool
-                const response = await fetch('https://re-panza.github.io/lk_tool/mondo327.json?nocache=' + Math.random());
-                if (!response.ok) throw new Error('File non trovato');
-                db = await response.json();
-                stato.innerHTML = "✅ Database Online: " + db.length + " castelli";
-                stato.style.color = "lime";
-            } catch (err) {
-                stato.innerHTML = "❌ Errore: Il database non risponde.<br>Controlla la repo lk_tool.";
-                stato.style.color = "red";
-                console.error(err);
+                const r = await fetch('https://re-panza.github.io/lk_tool/mondo327.json');
+                if (!r.ok) throw new Error();
+                db = await r.json();
+                stato.innerHTML = "✅ Database Pronto: " + db.length + " castelli";
+                stato.style.color = "#00ff00";
+            } catch (e) {
+                stato.innerHTML = "❌ Errore: File JSON non trovato";
+                stato.style.color = "#ff4444";
             }
         }
 
-        loadDB();
+        carica();
 
         function cerca() {
-            const input = document.getElementById('inputLink').value;
-            const resDiv = document.getElementById('risultati');
+            const link = document.getElementById('inputLink').value;
+            const res = document.getElementById('risultati');
+            const m = link.match(/player\?(\d+)/);
             
-            // Estrazione ID
-            const match = input.match(/player\?(\d+)/);
-            if (!match) {
-                alert("Link non valido! Incolla il link profilo dal gioco.");
+            if (!m) {
+                alert("Link non valido!");
                 return;
             }
 
-            const id = parseInt(match[1]);
-            const filtrati = db.filter(c => c.p === id);
+            const id = parseInt(m[1]);
+            const trovati = db.filter(c => c.p === id);
 
-            if (filtrati.length === 0) {
-                resDiv.innerHTML = "Nessun castello trovato per l'ID " + id;
+            if (trovati.length === 0) {
+                res.innerHTML = "Nessun castello trovato per ID " + id;
                 return;
             }
 
-            let html = "<b>Trovati " + filtrati.length + " castelli:</b><br><br>";
-            filtrati.forEach(c => {
-                const link = "l+k://coordinate?" + c.x + "&" + c.y + "&327";
-                html += '<div class="castello">' +
-                        '<b>' + c.n + '</b><br>' +
-                        '<a href="' + link + '">📍 Vai a ' + c.x + ':' + c.y + '</a>' +
-                        '</div>';
+            let h = "<b>Trovati: " + trovati.length + "</b><br><br>";
+            trovati.forEach(c => {
+                const url = "l+k://coordinate?" + c.x + "&" + c.y + "&327";
+                h += '<div class="castello"><b>' + c.n + '</b><br><a href="' + url + '">📍 Vai a ' + c.x + ':' + c.y + '</a></div>';
             });
-            resDiv.innerHTML = html;
+            res.innerHTML = h;
         }
     </script>
 </body>
