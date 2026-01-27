@@ -34,49 +34,45 @@ async function analizza() {
     const input = document.getElementById('linkInput').value;
     const divRisultati = document.getElementById('risultati');
     
-    // 1. Estraiamo l'ID dal link usando una Regex
-    // Cerca il numero dopo il punto di domanda e prima della e commerciale
-    const regex = /player\?(\d+)&/;
+    // Estrae l'ID dal link l+k://player?605&327
+    const regex = /player\?(\d+)/;
     const match = input.match(regex);
 
     if (!match) {
-        divRisultati.innerHTML = "<p style='color:red;'>Link non valido! Assicurati che sia nel formato l+k://player?605&327</p>";
+        divRisultati.innerHTML = "<p style='color:red;'>Link non valido! Incolla il link profilo del gioco.</p>";
         return;
     }
 
     const playerID = parseInt(match[1]);
-    divRisultati.innerHTML = "<p>Interrogazione database in corso...</p>";
+    divRisultati.innerHTML = "<p>🔍 Ricerca in corso nel database...</p>";
 
     try {
-        // 2. Pesca il file JSON dalla repository della Home Page
-        // Sostituisci 'TUO-UTENTE' con il tuo vero nome GitHub
-        const urlJSON = 'https://https://re-panza.github.io/lk_tool/mondo327.json'; 
+        // Indirizzo preciso del tuo file JSON sulla repo lk_tool
+        const urlJSON = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now(); 
+        
         const risposta = await fetch(urlJSON);
+        if (!risposta.ok) throw new Error("File non trovato");
+        
         const dati = await risposta.json();
 
-        // 3. Filtra i castelli per ID giocatore
+        // Filtra i castelli che hanno l'ID giocatore corrispondente
         const castelliTrovati = dati.filter(c => c.p === playerID);
 
         if (castelliTrovati.length === 0) {
-            divRisultati.innerHTML = `<p>Nessun castello trovato per l'ID ${playerID}.</p>`;
+            divRisultati.innerHTML = `<p>Nessun castello trovato per l'ID <b>${playerID}</b> nel database attuale.</p>`;
             return;
         }
 
-        // 4. Mostra i risultati
-        let html = `
-            <div class="info-player">
-                <h3 style="margin:0;">Castelli trovati: ${castelliTrovati.length}</h3>
-                <small>ID Giocatore: ${playerID}</small>
-            </div>
-        `;
-
+        // Costruisce la lista dei risultati
+        let html = `<div class="info-player"><h3>Trovati ${castelliTrovati.length} castelli</h3></div>`;
+        
         castelliTrovati.forEach(c => {
-            // Deep link per il castello
+            // Crea il link che apre direttamente il gioco alle coordinate
             const deepLink = `l+k://coordinate?${c.x}&${c.y}&327`;
             html += `
                 <div class="castello-item">
-                    <b>${c.n}</b><br>
-                    Coordinate: <a href="${deepLink}">${c.x}, ${c.y}</a>
+                    <b style="color:#ffcc00;">${c.n}</b><br>
+                    <small>Coordinate:</small> <a href="${deepLink}">${c.x}, ${c.y}</a>
                 </div>
             `;
         });
@@ -84,11 +80,8 @@ async function analizza() {
         divRisultati.innerHTML = html;
 
     } catch (errore) {
-        divRisultati.innerHTML = "<p style='color:red;'>Errore nel caricamento del database. Controlla l'URL della Home Page.</p>";
+        divRisultati.innerHTML = "<p style='color:red;'>Errore: Impossibile leggere il database. Verifica che il file mondo327.json sia presente in lk_tool.</p>";
         console.error(errore);
     }
 }
 </script>
-
-</body>
-</html>
