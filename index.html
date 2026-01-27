@@ -2,80 +2,81 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>L&K Scanner</title>
+    <title>L&K Scanner 327</title>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        .box { max-width: 400px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 15px; border: 1px solid #333; shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #333; color: white; }
-        button { width: 95%; padding: 12px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; color: black; }
-        .res { margin-top: 20px; text-align: left; }
-        .item { background: #2a2a2a; padding: 12px; margin: 8px 0; border-radius: 8px; border-left: 4px solid #ffcc00; }
-        a { color: #00ccff; text-decoration: none; font-weight: bold; font-family: monospace; }
-        #status { font-size: 0.8em; margin-bottom: 10px; }
+        body { background-color: #111; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+        .box { max-width: 450px; margin: 0 auto; background: #222; padding: 20px; border-radius: 10px; border: 1px solid #444; }
+        input { width: 80%; padding: 12px; border-radius: 5px; border: none; margin-bottom: 10px; }
+        button { width: 85%; padding: 12px; background: #ffcc00; border: none; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        .info { margin: 15px 0; font-size: 0.9em; }
+        .risultato { text-align: left; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px; }
+        .castello { background: #333; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid #ffcc00; }
+        a { color: #00ccff; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h2>Scanner 327</h2>
-    <div id="status">Caricamento dati...</div>
-    
-    <input type="text" id="link" placeholder="Incolla link profilo">
-    <button onclick="cerca()">CERCA GIOCATORE</button>
+    <div class="box">
+        <h2>Scanner Mondo 327</h2>
+        <div id="stato" class="info">Connessione in corso...</div>
+        
+        <input type="text" id="inputLink" placeholder="Incolla link giocatore qui">
+        <button onclick="cerca()">TROVA CASTELLI</button>
 
-    <div id="risultati" class="res"></div>
-</div>
+        <div id="risultati" class="risultato"></div>
+    </div>
 
-<script>
-let database = [];
+    <script>
+        let db = [];
 
-async function inizializza() {
-    const status = document.getElementById('status');
-    try {
-        // Indirizzo corretto verso lk_tool
-        const url = 'https://re-panza.github.io/lk_tool/mondo327.json?nocache=' + Math.random();
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error();
-        database = await resp.json();
-        status.innerHTML = "✅ Database Pronto (" + database.length + " castelli)";
-        status.style.color = "#4caf50";
-    } catch (e) {
-        status.innerHTML = "❌ Errore: File non trovato in lk_tool";
-        status.style.color = "#f44336";
-    }
-}
+        // Funzione di caricamento forzato
+        async function loadDB() {
+            const stato = document.getElementById('stato');
+            try {
+                // Proviamo l'URL pubblico della tua lk_tool
+                const response = await fetch('https://re-panza.github.io/lk_tool/mondo327.json?nocache=' + Math.random());
+                if (!response.ok) throw new Error('File non trovato');
+                db = await response.json();
+                stato.innerHTML = "✅ Database Online: " + db.length + " castelli";
+                stato.style.color = "lime";
+            } catch (err) {
+                stato.innerHTML = "❌ Errore: Il database non risponde.<br>Controlla la repo lk_tool.";
+                stato.style.color = "red";
+                console.error(err);
+            }
+        }
 
-inizializza();
+        loadDB();
 
-function cerca() {
-    const input = document.getElementById('link').value;
-    const resDiv = document.getElementById('risultati');
-    
-    const match = input.match(/player\?(\d+)/);
-    if (!match) {
-        resDiv.innerHTML = "<p style='color:orange;'>⚠️ Incolla un link valido!</p>";
-        return;
-    }
+        function cerca() {
+            const input = document.getElementById('inputLink').value;
+            const resDiv = document.getElementById('risultati');
+            
+            // Estrazione ID
+            const match = input.match(/player\?(\d+)/);
+            if (!match) {
+                alert("Link non valido! Incolla il link profilo dal gioco.");
+                return;
+            }
 
-    const idCercato = parseInt(match[1]);
-    const trovati = database.filter(c => c.p === idCercato);
+            const id = parseInt(match[1]);
+            const filtrati = db.filter(c => c.p === id);
 
-    if (trovati.length === 0) {
-        resDiv.innerHTML = "Nessun castello per ID: " + idCercato;
-        return;
-    }
+            if (filtrati.length === 0) {
+                resDiv.innerHTML = "Nessun castello trovato per l'ID " + id;
+                return;
+            }
 
-    let html = "<b>Trovati: " + trovati.length + "</b><br>";
-    trovati.forEach(c => {
-        const linkLK = "l+k://coordinate?" + c.x + "&" + c.y + "&327";
-        html += '<div class="item">' + c.n + '<br><a href="' + linkLK + '">📍 ' + c.x + ':' + c.y + '</a></div>';
-    });
-    
-    resDiv.innerHTML = html;
-    document.getElementById('link').value = ""; 
-}
-</script>
-
+            let html = "<b>Trovati " + filtrati.length + " castelli:</b><br><br>";
+            filtrati.forEach(c => {
+                const link = "l+k://coordinate?" + c.x + "&" + c.y + "&327";
+                html += '<div class="castello">' +
+                        '<b>' + c.n + '</b><br>' +
+                        '<a href="' + link + '">📍 Vai a ' + c.x + ':' + c.y + '</a>' +
+                        '</div>';
+            });
+            resDiv.innerHTML = html;
+        }
+    </script>
 </body>
 </html>
