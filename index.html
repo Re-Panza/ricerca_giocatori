@@ -2,7 +2,11 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://re-panza.github.io/lk_tool/icona.png">
+    
     <title>Ricerca Giocatore - L&K Tool</title>
     
     <script src="https://re-panza.github.io/lk_tool/version.js"></script>
@@ -19,57 +23,173 @@
             --accent: #60a5fa;
             --border: rgba(255, 255, 255, .10);
             --success: #34d399;
-            --danger: #f87171;
+            --danger: #ef4444;
+            --dangerBg: rgba(239, 68, 68, .12);
         }
 
-        body { background-color: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 20px; text-align: center; }
-        
-        .nav-header { display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto 20px auto; }
-        .btn-home { text-decoration: none; color: var(--accent); font-size: 14px; font-weight: 600; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        .container { max-width: 600px; margin: 0 auto; background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        h2 { margin: 0 0 10px 0; font-size: 22px; }
-        #stato { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+        body { 
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(1200px 600px at 20% 0%, rgba(96,165,250,.25), transparent 60%),
+                        radial-gradient(1000px 500px at 90% 10%, rgba(52,211,153,.18), transparent 55%),
+                        var(--bg);
+            color: var(--text);
+            padding: env(safe-area-inset-top, 20px) 20px 40px 20px;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+            line-height: 1.5;
+        }
 
-        textarea { width: 100%; height: 100px; padding: 12px; margin: 15px 0; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box; resize: none; font-size: 14px; }
-        
-        #errorBanner { display: none; background: rgba(248, 113, 113, 0.1); color: var(--danger); padding: 12px; border-radius: 10px; border: 1px solid var(--danger); margin-bottom: 15px; font-size: 13px; font-weight: 600; }
+        /* Container settato esattamente come index_calcola */
+        .container { 
+            max-width: 500px; 
+            margin: 0 auto; 
+            background: rgba(17,28,51,.80); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 32px 24px; 
+            border-radius: 24px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 20px 50px rgba(0,0,0,.3); 
+        }
 
-        .btn-cerca { width: 100%; padding: 15px; background: var(--accent); border: none; font-weight: 700; font-size: 16px; border-radius: 12px; cursor: pointer; color: #fff; margin-bottom: 10px; }
+        .nav-header { 
+            max-width: 500px; 
+            margin: 0 auto 20px auto; 
+            display: flex; 
+            justify-content: flex-start; 
+        }
         
-        .btn-export-box { display: flex; gap: 10px; margin: 20px 0; display: none; }
-        .btn-exp { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
-        .btn-sel { background: var(--success); color: #064e3b; }
-        .btn-all { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
+        .btn-home { 
+            text-decoration: none; 
+            color: var(--accent); 
+            font-weight: 700; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 16px;
+        }
 
-        /* Gruppi Giocatori */
-        .player-group { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; text-align: left; }
-        .player-header { background: rgba(255,255,255,0.02); color: var(--accent); padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
-        .player-content { display: none; padding: 10px; background: rgba(0,0,0,0.1); }
+        h2 { 
+            margin: 0 0 24px 0; 
+            font-size: 26px; 
+            font-weight: 800;
+            color: #fff; 
+            text-align: center; 
+            letter-spacing: -0.02em;
+        }
+
+        textarea { 
+            width: 100%; 
+            height: 140px; 
+            padding: 16px; 
+            margin-bottom: 20px; 
+            border-radius: 16px; 
+            border: 1px solid var(--border); 
+            background: rgba(255,255,255,.05); 
+            color: var(--text); 
+            outline: none;
+            font-size: 16px; 
+            font-family: inherit;
+            resize: none;
+            -webkit-user-select: text;
+            user-select: text;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { border-color: var(--accent); }
+
+        #errorBanner { 
+            display: none; 
+            margin-bottom: 20px;
+            border: 1px solid rgba(239,68,68,.4);
+            background: var(--dangerBg);
+            color: #ffcfcf;
+            border-radius: 16px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .btn-cerca { 
+            width: 100%; 
+            padding: 16px; 
+            background: var(--accent); 
+            border: none;
+            font-weight: 800; 
+            font-size: 17px; 
+            border-radius: 16px; 
+            cursor: pointer; 
+            color: #0f172a; 
+            margin-bottom: 12px; 
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn-cerca:active { transform: scale(0.98); opacity: 0.9; }
+
+        .btn-export-box { display: flex; gap: 12px; margin-top: 10px; display: none; }
+        .btn-exp { 
+            flex: 1; 
+            padding: 14px; 
+            border-radius: 14px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            font-size: 14px;
+            border: 1px solid var(--border);
+        }
+        .btn-sel { background: rgba(52, 211, 153, 0.1); color: var(--success); border-color: rgba(52, 211, 153, 0.3); }
+        .btn-all { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+        /* Stile Risultati */
+        #risultati { margin-top: 24px; }
+        .player-group { margin-bottom: 16px; border: 1px solid var(--border); border-radius: 18px; overflow: hidden; background: rgba(255,255,255,.02); }
+        .player-header { padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; color: var(--accent); }
+        .player-content { display: none; padding: 12px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border); }
         .player-header.active + .player-content { display: block; }
 
-        /* Card Habitat */
-        .castello-card { background: rgba(255,255,255,0.02); padding: 12px; margin-bottom: 8px; border-radius: 10px; border-left: 4px solid var(--accent); display: flex; align-items: center; gap: 12px; }
-        .hab-check { width: 18px; height: 18px; cursor: pointer; accent-color: var(--success); }
-        .castello-nome { font-weight: 700; color: #fff; display: block; font-size: 15px; }
-        .castello-info { font-size: 13px; color: var(--muted); margin-top: 2px; }
-        .castello-link { color: var(--accent); text-decoration: none; font-family: monospace; font-size: 12px; display: block; margin-top: 6px; opacity: 0.7; }
+        .castello-card { 
+            background: rgba(255,255,255,.03); 
+            padding: 14px; 
+            margin-bottom: 10px; 
+            border-radius: 14px; 
+            border: 1px solid var(--border); 
+            display: flex; 
+            align-items: center; 
+            gap: 14px; 
+        }
+        .hab-check { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent); }
+        .castello-nome { font-weight: 700; color: #fff; display: block; font-size: 16px; }
+        .castello-info { font-size: 13px; color: var(--muted); margin-top: 3px; }
+        .castello-link { color: var(--accent); text-decoration: none; font-family: monospace; font-size: 12px; display: block; margin-top: 8px; opacity: 0.6; }
 
-        .paypal-footer { margin-top: 40px; text-align: center; border-top: 1px solid var(--border); padding-top: 24px; }
-        .paypal-button { display: inline-flex; align-items: center; gap: 8px; background: #ffc439; color: #000; padding: 10px 20px; border-radius: 100px; text-decoration: none; font-weight: 700; font-size: 14px; }
+        /* Footer identico a Calcola */
+        .paypal-footer { text-align: center; margin-top: 40px; padding: 30px 20px; border-top: 1px solid var(--border); }
+        .paypal-link {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            background: rgba(0, 112, 186, 0.1);
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 1px solid rgba(0, 112, 186, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
     </style>
 </head>
 <body>
 
     <div class="nav-header">
-        <a href="https://re-panza.github.io/lk_tool/index.html" class="btn-home">← Home</a>
-        <div style="font-size: 10px; color: var(--muted);">v<script>document.write(APP_VERSION)</script></div>
+        <a href="https://re-panza.github.io/lk_tool/index.html" class="btn-home">🏠 Torna alla Home</a>
     </div>
 
     <div class="container">
-        <h2>🔍 Intelligence Mondiale</h2>
-        <div id="stato">Caricamento database...</div>
+        <h2>🔍 Ricerca Giocatore</h2>
         
         <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
 
@@ -86,23 +206,20 @@
     </div>
 
     <footer class="paypal-footer">
-        <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">Offrimi un caffè se il tool ti è utile!</p>
-        <a href="https://www.paypal.me/AmedeoPanza" target="_blank" class="paypal-button">PayPal</a>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Ti piace questo strumento?</p>
+        <a href="https://www.paypal.me/AmedeoPanza" target="_blank" class="paypal-link">
+            ☕ Offrimi un caffè su PayPal
+        </a>
     </footer>
 
     <script>
         let db = [];
-
         async function loadDB() {
-            const stato = document.getElementById('stato');
             try {
                 const url = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now();
                 const risposta = await fetch(url);
                 db = await risposta.json();
-                stato.innerHTML = `✅ Database Pronto (${db.length.toLocaleString()} castelli)`;
-            } catch (err) {
-                stato.innerHTML = "❌ Errore caricamento database.";
-            }
+            } catch (err) { console.error("Errore DB"); }
         }
         loadDB();
 
@@ -130,7 +247,6 @@
             }
 
             const chunks = input.split(/Nome giocatore:/i).filter(c => c.trim() !== "");
-            
             chunks.forEach(chunk => {
                 const linee = chunk.trim().split('\n');
                 const nomePlayer = linee[0].trim();
@@ -149,12 +265,10 @@
         function renderPlayerGroup(nome, castelli, container) {
             const group = document.createElement('div');
             group.className = 'player-group';
-            
             let itemsHtml = castelli.map((c, i) => {
                 const tipo = getTipoHabitat(c.t);
                 const link = `l+k://coordinates?${c.x}&${c.y}&327`;
                 const punti = (c.pt || 0).toLocaleString();
-                
                 return `
                     <div class="castello-card">
                         <input type="checkbox" class="hab-check" 
@@ -173,9 +287,7 @@
                     <span>👤 ${nome} (${castelli.length})</span>
                     <span>▼</span>
                 </div>
-                <div class="player-content">
-                    ${castelli.length > 0 ? itemsHtml : '<p style="padding:15px; color:var(--muted); font-size:13px;">Nessun dato trovato.</p>'}
-                </div>
+                <div class="player-content">${castelli.length > 0 ? itemsHtml : '<p style="padding:15px; color:var(--muted); font-size:13px;">Nessun dato trovato.</p>'}</div>
             `;
             container.appendChild(group);
         }
@@ -184,17 +296,13 @@
             const checkboxes = document.querySelectorAll('.hab-check');
             let testo = "--- REPORT INTELLIGENCE L&K ---\n\n";
             let count = 0;
-
             checkboxes.forEach(cb => {
                 if (!soloSelezionati || cb.checked) {
-                    // RIMOSSE COORDINATE ANCHE DA QUI (rimane solo il link)
                     testo += `${cb.dataset.tipo}: ${cb.dataset.nome} (${cb.dataset.punti} pt)\nLink: ${cb.dataset.link}\n\n`;
                     count++;
                 }
             });
-
             if (count === 0) return alert("Nessuna selezione!");
-
             const blob = new Blob([testo], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
