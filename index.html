@@ -16,8 +16,9 @@
         .btn-cerca:hover { background: #e6b800; transform: translateY(-2px); }
         #stato { font-size: 0.9em; margin-bottom: 10px; color: #888; }
         .risultati-box { margin-top: 25px; text-align: left; }
-        .castello-card { background: #252525; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid #ffcc00; word-break: break-all; }
+        .castello-card { background: #252525; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid #ffcc00; word-break: break-all; text-align: left; }
         .castello-nome { font-weight: bold; color: #fff; margin-bottom: 5px; display: block; }
+        .castello-info { font-size: 0.85em; margin-bottom: 8px; color: #bbb; }
         .castello-link { color: #00ccff; text-decoration: none; font-family: monospace; font-size: 0.95em; display: block; margin-top: 5px; }
         .castello-link:hover { text-decoration: underline; }
         .footer { margin-top: 30px; font-size: 0.8em; color: #666; }
@@ -32,9 +33,9 @@
         <h2>🔍 Intelligence Giocatori</h2>
         <div id="stato">Connessione al database...</div>
         
-        <textarea id="inputText" placeholder="Incolla qui il profilo (es: Nome giocatore... l+k://player?...)"></textarea>
+        <textarea id="inputText" placeholder="Incolla profilo Giocatore o Alleanza..."></textarea>
         
-        <button class="btn-" onclick="cerca()">TROVA CASTELLI</button>
+        <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
 
         <div id="risultati" class="risultati-box"></div>
     </div>
@@ -47,19 +48,13 @@
     <script>
         let db = [];
 
-        // 1. Caricamento Database Ottimizzato
         async function loadDB() {
             const stato = document.getElementById('stato');
             try {
-                // Forziamo il caricamento dell'ultima versione
                 const url = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now();
                 const risposta = await fetch(url);
-                
                 if (!risposta.ok) throw new Error("File non trovato");
-
                 const testoGrezzo = await risposta.text();
-                
-                // Pulizia per evitare errori se il file ha scorie PHP
                 const inizioJson = testoGrezzo.indexOf('[');
                 const fineJson = testoGrezzo.lastIndexOf(']');
                 
@@ -70,62 +65,70 @@
 
                 const jsonPulito = testoGrezzo.substring(inizioJson, fineJson + 1);
                 db = JSON.parse(jsonPulito);
-
                 stato.innerHTML = `✅ Database Pronto (${db.length.toLocaleString()} castelli)`;
                 stato.style.color = "#4caf50";
-
             } catch (err) {
-                console.error("Errore di caricamento:", err);
+                console.error("Errore:", err);
                 stato.innerHTML = "❌ Errore caricamento database.";
                 stato.style.color = "#f44336";
             }
         }
 
-        // Avvio automatico al caricamento
         loadDB();
 
-        // 2. Funzione Cerca
         function cerca() {
             const input = document.getElementById('inputText').value;
             const resDiv = document.getElementById('risultati');
-            
-            // Trova l'ID Giocatore
-            const matchID = input.match(/player\?(\d+)/);
-            
-            // Trova il Nome Giocatore (opzionale)
+            resDiv.innerHTML = ""; 
+
+            const matchPlayer = input.match(/player\?(\d+)/);
+            const matchAlly = input.match(/alliance\?(\d+)/);
             const matchNome = input.match(/Nome giocatore:\s*(.*?)(\n|$)/);
-            const nomeGiocatore = matchNome ? matchNome[1].trim() : "Giocatore";
+            const nomeGiocatore = matchNome ? matchNome[1].trim() : "";
 
-            if (!matchID) {
-                alert("⚠️ Link non valido! Incolla il link del profilo (l+k://player?...)");
+            let castelliTrovati = [];
+            let titolo = "";
+
+            if (matchAlly) {
+                const idAlly = parseInt(matchAlly[1]);
+                castelliTrovati = db.filter(c => c.a === idAlly);
+                titolo = "Alleanza ID: " + idAlly;
+            } else if (matchPlayer) {
+                const idPlayer = parseInt(matchPlayer[1]);
+                castelliTrovati = db.filter(c => c.p === idPlayer);
+                titolo = nomeGiocatore ? nomeGiocatore : "Giocatore ID: " + idPlayer;
+            } else {
+                alert("⚠️ Link non valido! Incolla un profilo giocatore o alleanza.");
                 return;
             }
 
-            const idCercato = parseInt(matchID[1]);
-            
-           // Filtra
-let castelliTrovati = db.filter(c => c.p === idCercato || c.a === idCercatoAlly);
-
-// ORDINA PER PUNTI (dal più alto al più basso)
-castelliTrovati.sort((a, b) => b.pt - a.pt);
             if (castelliTrovati.length === 0) {
-                resDiv.innerHTML = `<p style="text-align:center;">Nessun castello trovato per l'ID <b>${idCercato}</b>.</p>`;
+                resDiv.innerHTML = `<p style="text-align:center;">Nessun dato trovato in memoria per questa ricerca.</p>`;
                 return;
             }
+
+            // Ordinamento per punti decrescente
+            castelliTrovati.sort((a, b) => (b.pt || 0) - (a.pt || 0));
 
             let html = `<div style="text-align:center; margin-bottom:20px; border-bottom:1px solid #444; padding-bottom:10px;">
-                            <h3 style="margin:0; color:#fff;">${nomeGiocatore}</h3>
-                            <small style="color:#aaa;">ID: ${idCercato} • Castelli: ${castelliTrovati.length}</small>
+                            <h3 style="margin:0; color:#ffcc00;">${titolo}</h3>
+                            <small style="color:#aaa;">Castelli trovati: ${castelliTrovati.length}</small>
                         </div>`;
 
             castelliTrovati.forEach(c => {
                 const nomeVisuale = (c.n && c.n.trim() !== "") ? c.n.trim() : "Castello";
+                const puntiFormattati = (c.pt || 0).toLocaleString();
+                const tipoVisuale = c.t || "Castello";
+                
                 const deepLinkVisual = `l+k://coordinates?${c.x},${c.y}&327`; 
                 const deepLinkActive = `l+k://coordinate?${c.x}&${c.y}&327`;
                 
                 html += `
                     <div class="castello-card">
                         <span class="castello-nome">${nomeVisuale}</span>
+                        <div class="castello-info">
+                            <span style="color:#ffcc00;">${tipoVisuale}</span> • <b>${puntiFormattati}</b> punti
+                        </div>
                         <a href="${deepLinkActive}" class="castello-link">${deepLinkVisual}</a>
                     </div>
                 `;
