@@ -213,16 +213,14 @@
     </footer>
 
     <script>
-        let db = [];
-        async function loadDB() {
-            try {
-                const url = 'https://re-panza.github.io/lk_tool/mondo327.json?v=' + Date.now();
-                const risposta = await fetch(url);
-                db = await risposta.json();
-            } catch (err) { console.error("Errore DB"); }
-        }
-        loadDB();
+    let db = [];
+let mondoCaricatoAttualmente = "";
 
+// Mappa dei database per ogni mondo
+const configMondi = {
+    "327": "https://re-panza.github.io/lk_tool/mondo327.json",
+    "337": "https://lkscanner337.github.io/scanner/mondo337.json"
+};
         function getTipoHabitat(t) {
             const tipo = String(t).trim();
             if (tipo === "0") return "Castello";
@@ -231,7 +229,7 @@
             return isNaN(tipo) ? tipo : "Metropoli";
         }
 
-        function cerca() {
+        async function cerca() {
             const input = document.getElementById('inputText').value;
             const resDiv = document.getElementById('risultati');
             const exportDiv = document.getElementById('export-buttons');
@@ -240,12 +238,34 @@
             resDiv.innerHTML = ""; 
             errorBanner.style.display = "none";
 
-            if (!input.toLowerCase().includes("nome giocatore:") || !input.includes("l+k://player?")) {
+            // 1. Controllo validità e identificazione Mondo
+            const matchMondo = input.match(/&(\d+)/);
+            if (!input.toLowerCase().includes("nome giocatore:") || !input.includes("l+k://player?") || !matchMondo) {
                 errorBanner.style.display = "block";
                 exportDiv.style.display = "none";
                 return;
             }
 
+            const mondoScelto = matchMondo[1];
+
+            // 2. Caricamento dinamico del DB se il mondo è cambiato
+            if (mondoCaricatoAttualmente !== mondoScelto) {
+                const url = configMondi[mondoScelto];
+                if (!url) {
+                    alert("Mondo " + mondoScelto + " non supportato!");
+                    return;
+                }
+                try {
+                    const risposta = await fetch(url + "?v=" + Date.now());
+                    db = await risposta.json();
+                    mondoCaricatoAttualmente = mondoScelto;
+                } catch (err) { 
+                    alert("Errore nel caricamento dei dati del Mondo " + mondoScelto);
+                    return;
+                }
+            }
+
+            // 3. Elaborazione dei risultati
             const chunks = input.split(/Nome giocatore:/i).filter(c => c.trim() !== "");
             chunks.forEach(chunk => {
                 const linee = chunk.trim().split('\n');
@@ -256,18 +276,19 @@
                     const pID = parseInt(idMatch[1]);
                     let castelli = db.filter(c => c.p === pID);
                     castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
-                    renderPlayerGroup(nomePlayer, castelli, resDiv);
+                    renderPlayerGroup(nomePlayer, castelli, resDiv, mondoScelto);
                     exportDiv.style.display = "flex";
                 }
             });
         }
 
-        function renderPlayerGroup(nome, castelli, container) {
+        function renderPlayerGroup(nome, castelli, container, mondo) {
             const group = document.createElement('div');
             group.className = 'player-group';
             let itemsHtml = castelli.map((c, i) => {
                 const tipo = getTipoHabitat(c.t);
-                const link = `l+k://coordinates?${c.x}&${c.y}&327`;
+                // NOTA: Abbiamo aggiunto la variabile 'mondo' dinamica qui sotto
+                const link = `l+k://coordinates?${c.x},${c.y}&${mondo}`;
                 const punti = (c.pt || 0).toLocaleString();
                 return `
                     <div class="castello-card">
