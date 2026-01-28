@@ -16,9 +16,9 @@
         .btn-cerca:hover { background: #e6b800; transform: translateY(-2px); }
         #stato { font-size: 0.9em; margin-bottom: 10px; color: #888; }
         .risultati-box { margin-top: 25px; text-align: left; }
-        .castello-card { background: #252525; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid #ffcc00; word-break: break-all; text-align: left; }
-        .castello-nome { font-weight: bold; color: #fff; margin-bottom: 5px; display: block; }
-        .castello-info { font-size: 0.85em; margin-bottom: 8px; color: #bbb; }
+        .castello-card { background: #252525; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid #ffcc00; word-break: break-all; }
+        .castello-nome { font-weight: bold; color: #fff; margin-bottom: 3px; display: block; }
+        .castello-info { font-size: 0.85em; color: #bbb; margin-bottom: 8px; }
         .castello-link { color: #00ccff; text-decoration: none; font-family: monospace; font-size: 0.95em; display: block; margin-top: 5px; }
         .castello-link:hover { text-decoration: underline; }
         .footer { margin-top: 30px; font-size: 0.8em; color: #666; }
@@ -30,10 +30,10 @@
     <a href="https://re-panza.github.io/lk_tool/" class="nav-home">⬅ Torna alla Home</a>
 
     <div class="container">
-        <h2>🔍 Intelligence Giocatori</h2>
+        <h2>🔍 Intelligence Mondiale</h2>
         <div id="stato">Connessione al database...</div>
         
-        <textarea id="inputText" placeholder="Incolla profilo Giocatore o Alleanza..."></textarea>
+        <textarea id="inputText" placeholder="Incolla profilo Giocatore o Alleanza (l+k://...)"></textarea>
         
         <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
 
@@ -57,23 +57,18 @@
                 const testoGrezzo = await risposta.text();
                 const inizioJson = testoGrezzo.indexOf('[');
                 const fineJson = testoGrezzo.lastIndexOf(']');
-                
                 if (inizioJson === -1) {
-                    stato.innerHTML = "⚠️ Database vuoto. Avvia lo scanner!";
+                    stato.innerHTML = "⚠️ Database ancora vuoto.";
                     return;
                 }
-
-                const jsonPulito = testoGrezzo.substring(inizioJson, fineJson + 1);
-                db = JSON.parse(jsonPulito);
+                db = JSON.parse(testoGrezzo.substring(inizioJson, fineJson + 1));
                 stato.innerHTML = `✅ Database Pronto (${db.length.toLocaleString()} castelli)`;
                 stato.style.color = "#4caf50";
             } catch (err) {
-                console.error("Errore:", err);
-                stato.innerHTML = "❌ Errore caricamento database.";
+                stato.innerHTML = "❌ Errore database.";
                 stato.style.color = "#f44336";
             }
         }
-
         loadDB();
 
         function cerca() {
@@ -84,7 +79,6 @@
             const matchPlayer = input.match(/player\?(\d+)/);
             const matchAlly = input.match(/alliance\?(\d+)/);
             const matchNome = input.match(/Nome giocatore:\s*(.*?)(\n|$)/);
-            const nomeGiocatore = matchNome ? matchNome[1].trim() : "";
 
             let castelliTrovati = [];
             let titolo = "";
@@ -96,42 +90,35 @@
             } else if (matchPlayer) {
                 const idPlayer = parseInt(matchPlayer[1]);
                 castelliTrovati = db.filter(c => c.p === idPlayer);
-                titolo = nomeGiocatore ? nomeGiocatore : "Giocatore ID: " + idPlayer;
+                titolo = matchNome ? matchNome[1].trim() : "Giocatore ID: " + idPlayer;
             } else {
-                alert("⚠️ Link non valido! Incolla un profilo giocatore o alleanza.");
+                alert("⚠️ Incolla un link valido!");
                 return;
             }
 
             if (castelliTrovati.length === 0) {
-                resDiv.innerHTML = `<p style="text-align:center;">Nessun dato trovato in memoria per questa ricerca.</p>`;
+                resDiv.innerHTML = `<p style="text-align:center;">Nessun dato trovato.</p>`;
                 return;
             }
 
-            // Ordinamento per punti decrescente
+            // Ordina per punti decrescente
             castelliTrovati.sort((a, b) => (b.pt || 0) - (a.pt || 0));
 
             let html = `<div style="text-align:center; margin-bottom:20px; border-bottom:1px solid #444; padding-bottom:10px;">
                             <h3 style="margin:0; color:#ffcc00;">${titolo}</h3>
-                            <small style="color:#aaa;">Castelli trovati: ${castelliTrovati.length}</small>
+                            <small style="color:#aaa;">Trovati ${castelliTrovati.length} habitat</small>
                         </div>`;
 
             castelliTrovati.forEach(c => {
-                const nomeVisuale = (c.n && c.n.trim() !== "") ? c.n.trim() : "Castello";
-                const puntiFormattati = (c.pt || 0).toLocaleString();
-                const tipoVisuale = c.t || "Castello";
-                
-                const deepLinkVisual = `l+k://coordinates?${c.x},${c.y}&327`; 
-                const deepLinkActive = `l+k://coordinate?${c.x}&${c.y}&327`;
-                
+                const n = c.n || "Castello";
+                const pt = (c.pt || 0).toLocaleString();
+                const t = c.t || "Castello";
                 html += `
                     <div class="castello-card">
-                        <span class="castello-nome">${nomeVisuale}</span>
-                        <div class="castello-info">
-                            <span style="color:#ffcc00;">${tipoVisuale}</span> • <b>${puntiFormattati}</b> punti
-                        </div>
-                        <a href="${deepLinkActive}" class="castello-link">${deepLinkVisual}</a>
-                    </div>
-                `;
+                        <span class="castello-nome">${n}</span>
+                        <div class="castello-info"><b style="color:#ffcc00;">${t}</b> • ${pt} punti</div>
+                        <a href="l+k://coordinate?${c.x}&${c.y}&327" class="castello-link">l+k://coordinates?${c.x},${c.y}&327</a>
+                    </div>`;
             });
             resDiv.innerHTML = html;
         }
