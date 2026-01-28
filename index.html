@@ -97,24 +97,37 @@
         }
         loadDB();
 
-      function cerca() {
+     function cerca() {
     const input = document.getElementById('inputText').value;
     const resDiv = document.getElementById('risultati');
     resDiv.innerHTML = ""; 
 
+    // Estrazione ID
     const playerIDs = [...input.matchAll(/player\?(\d+)/g)].map(m => parseInt(m[1]));
     const allianceIDs = [...input.matchAll(/alliance\?(\d+)/g)].map(m => parseInt(m[1]));
 
-    let filtrati = db.filter(c => playerIDs.includes(c.p) || allianceIDs.includes(c.a));
-
-    if (filtrati.length === 0) {
-        resDiv.innerHTML = `<p style="text-align:center;">Nessun dato trovato.</p>`;
+    if (playerIDs.length === 0 && allianceIDs.length === 0) {
+        alert("⚠️ Incolla un link valido!");
         return;
     }
 
-    // Raggruppa per Player ID
+    // Filtro dati
+    let filtrati = db.filter(c => playerIDs.includes(c.p) || allianceIDs.includes(c.a));
+
+    if (filtrati.length === 0) {
+        resDiv.innerHTML = `<p style="text-align:center;">Nessun dato trovato. Lo scanner ha già coperto questa zona?</p>`;
+        return;
+    }
+
+    // Raggruppamento
     const raggruppato = filtrati.reduce((acc, c) => {
-        if (!acc[c.p]) acc[c.p] = { nome: c.pn || "Giocatore " + c.p, castelli: [] };
+        if (!acc[c.p]) {
+            // Se pn non esiste (vecchi dati), usa l'ID
+            acc[c.p] = { 
+                nome: c.pn ? c.pn : "Giocatore " + c.p, 
+                castelli: [] 
+            };
+        }
         acc[c.p].castelli.push(c);
         return acc;
     }, {});
@@ -125,6 +138,7 @@
         const player = raggruppato[pID];
         player.castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
 
+        // Usiamo innerText per gestire i caratteri speciali in sicurezza
         html += `
             <div class="player-group">
                 <div class="player-header" onclick="this.classList.toggle('active')">
@@ -134,9 +148,10 @@
                 <div class="player-content">`;
 
         player.castelli.forEach((c, index) => {
+            const nomeHabitat = c.n ? c.n : "Habitat";
             html += `
                 <div class="castello-card">
-                    <span class="castello-nome">${index + 1}. ${c.n || "Castello"}</span>
+                    <span class="castello-nome">${index + 1}. ${nomeHabitat}</span>
                     <div class="castello-info"><b>${c.t || "Castello"}</b> • ${(c.pt || 0).toLocaleString()} pt</div>
                     <a href="l+k://coordinate?${c.x}&${c.y}&327" class="castello-link">l+k://coordinates?${c.x},${c.y}&327</a>
                 </div>`;
