@@ -34,7 +34,7 @@
         
         <textarea id="inputText" placeholder="Incolla qui il profilo (es: Nome giocatore... l+k://player?...)"></textarea>
         
-        <button class="btn-cerca" onclick="cerca()">TROVA CASTELLI</button>
+        <button class="btn-" onclick="cerca()">TROVA CASTELLI</button>
 
         <div id="risultati" class="risultati-box"></div>
     </div>
@@ -103,9 +103,11 @@
 
             const idCercato = parseInt(matchID[1]);
             
-            // Filtro (togliamo il type 't' perché rimosso dallo scanner)
-            const castelliTrovati = db.filter(c => c.p === idCercato);
+           // Filtra
+let castelliTrovati = db.filter(c => c.p === idCercato || c.a === idCercatoAlly);
 
+// ORDINA PER PUNTI (dal più alto al più basso)
+castelliTrovati.sort((a, b) => b.pt - a.pt);
             if (castelliTrovati.length === 0) {
                 resDiv.innerHTML = `<p style="text-align:center;">Nessun castello trovato per l'ID <b>${idCercato}</b>.</p>`;
                 return;
