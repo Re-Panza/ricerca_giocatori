@@ -35,7 +35,7 @@
         
         <textarea id="inputText" placeholder="Incolla profilo Giocatore o Alleanza (l+k://...)"></textarea>
         
-        <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
+        <button class="btn-" onclick="cerca()">AVVIA RICERCA</button>
 
         <div id="risultati" class="risultati-box"></div>
     </div>
@@ -71,56 +71,100 @@
         }
         loadDB();
 
-        function cerca() {
+      function cerca() {
             const input = document.getElementById('inputText').value;
             const resDiv = document.getElementById('risultati');
             resDiv.innerHTML = ""; 
 
-            const matchPlayer = input.match(/player\?(\d+)/);
-            const matchAlly = input.match(/alliance\?(\d+)/);
-            const matchNome = input.match(/Nome giocatore:\s*(.*?)(\n|$)/);
+            // Trova tutti gli ID player e alliance nel testo
+            const playerIDs = [...input.matchAll(/player\?(\d+)/g)].map(m => parseInt(m[1]));
+            const allianceIDs = [...input.matchAll(/alliance\?(\d+)/g)].map(m => parseInt(m[1]));
 
-            let castelliTrovati = [];
-            let titolo = "";
-
-            if (matchAlly) {
-                const idAlly = parseInt(matchAlly[1]);
-                castelliTrovati = db.filter(c => c.a === idAlly);
-                titolo = "Alleanza ID: " + idAlly;
-            } else if (matchPlayer) {
-                const idPlayer = parseInt(matchPlayer[1]);
-                castelliTrovati = db.filter(c => c.p === idPlayer);
-                titolo = matchNome ? matchNome[1].trim() : "Giocatore ID: " + idPlayer;
-            } else {
-                alert("⚠️ Incolla un link valido!");
+            if (playerIDs.length === 0 && allianceIDs.length === 0) {
+                alert("⚠️ Nessun link valido trovato!");
                 return;
             }
 
-            if (castelliTrovati.length === 0) {
-                resDiv.innerHTML = `<p style="text-align:center;">Nessun dato trovato.</p>`;
+            // Filtra i castelli (cerca sia per player che per alleanza)
+            let filtrati = db.filter(c => playerIDs.includes(c.p) || allianceIDs.includes(c.a));
+
+            if (filtrati.length === 0) {
+                resDiv.innerHTML = `<p style="text-align:center;">Nessun castello trovato nel database.</p>`;
                 return;
             }
 
-            // Ordina per punti decrescente
-            castelliTrovati.sort((a, b) => (b.pt || 0) - (a.pt || 0));
+            // Raggruppa per Player ID
+            const raggruppato = filtrati.reduce((acc, c) => {
+                if (!acc[c.p]) acc[c.p] = [];
+                acc[c.p].push(c);
+                return { ...acc };
+            }, {});
 
-            let html = `<div style="text-align:center; margin-bottom:20px; border-bottom:1px solid #444; padding-bottom:10px;">
-                            <h3 style="margin:0; color:#ffcc00;">${titolo}</h3>
-                            <small style="color:#aaa;">Trovati ${castelliTrovati.length} habitat</small>
+            let html = `<button class="btn-cerca" style="background:#2196F3; color:white; margin-bottom:20px;" onclick="exportReport()">📥 ESPORTA REPORT .TXT</button>`;
+
+            // Cicla sui giocatori raggruppati
+            Object.keys(raggruppato).forEach(pID => {
+                const castelli = raggruppato[pID];
+                // Ordina per punti decrescente
+                castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
+
+                html += `<div style="text-align:left; margin-bottom:30px; border-bottom:2px solid #ffcc00; padding-bottom:5px;">
+                            <h3 style="margin:0; color:#ffcc00;">GIOCATORE ID: ${pID}</h3>
+                            <small style="color:#aaa;">Habitat totali: ${castelli.length}</small>
+                         </div>`;
+
+                castelli.forEach((c, index) => {
+                    const n = c.n || "Castello";
+                    const pt = (c.pt || 0).toLocaleString();
+                    const t = c.t || "Castello";
+                    const link = `l+k://coordinate?${c.x}&${c.y}&327`;
+                    
+                    html += `
+                        <div class="castello-card">
+                            <span class="castello-nome">${index + 1}. ${n}</span>
+                            <div class="castello-info"><b>${t}</b> • ${pt} punti</div>
+                            <a href="${link}" class="castello-link">l+k://coordinates?${c.x},${c.y}&327</a>
                         </div>`;
-
-            castelliTrovati.forEach(c => {
-                const n = c.n || "Castello";
-                const pt = (c.pt || 0).toLocaleString();
-                const t = c.t || "Castello";
-                html += `
-                    <div class="castello-card">
-                        <span class="castello-nome">${n}</span>
-                        <div class="castello-info"><b style="color:#ffcc00;">${t}</b> • ${pt} punti</div>
-                        <a href="l+k://coordinate?${c.x}&${c.y}&327" class="castello-link">l+k://coordinates?${c.x},${c.y}&327</a>
-                    </div>`;
+                });
             });
+
             resDiv.innerHTML = html;
+        }
+        function exportReport() {
+            const container = document.getElementById('risultati');
+            let testoExport = "--- REPORT INTELLIGENCE L&K ---\n\n";
+            
+            // Seleziona tutti i blocchi giocatori e i loro castelli
+            const cards = container.querySelectorAll('.castello-card');
+            const headers = container.querySelectorAll('h3');
+            
+            let currentHeaderIndex = 0;
+            let counter = 1;
+
+            // Logica semplice per estrarre il testo pulito
+            const cardsArray = Array.from(container.children);
+            
+            cardsArray.forEach(el => {
+                if (el.tagName === 'DIV' && el.style.textAlign === 'left') {
+                    testoExport += `\n${el.innerText}\n${"=".repeat(20)}\n`;
+                    counter = 1;
+                }
+                if (el.classList.contains('castello-card')) {
+                    const nome = el.querySelector('.castello-nome').innerText;
+                    const info = el.querySelector('.castello-info').innerText;
+                    const link = el.querySelector('.castello-link').innerText;
+                    testoExport += `${nome} | ${info}\n Link: ${link}\n\n`;
+                }
+            });
+
+            // Creazione file e download
+            const blob = new Blob([testoExport], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Report_Intelligence_${new Date().toLocaleDateString()}.txt`;
+            a.click();
+            window.URL.revokeObjectURL(url);
         }
     </script>
 </body>
