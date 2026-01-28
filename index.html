@@ -23,6 +23,32 @@
         .castello-link:hover { text-decoration: underline; }
         .footer { margin-top: 30px; font-size: 0.8em; color: #666; }
         .paypal-btn { color: #ffcc00; text-decoration: none; font-weight: bold; }
+        /* Stile per il menu a tendina */
+.player-group {
+    margin-bottom: 10px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.player-header {
+    background: #2b2b2b;
+    color: #ffcc00;
+    padding: 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+.player-header:hover { background: #333; }
+.player-content {
+    display: none; /* Chiuso di default */
+    padding: 10px;
+    background: #1e1e1e;
+}
+.player-header.active + .player-content {
+    display: block;
+}
     </style>
 </head>
 <body>
@@ -72,64 +98,55 @@
         loadDB();
 
       function cerca() {
-            const input = document.getElementById('inputText').value;
-            const resDiv = document.getElementById('risultati');
-            resDiv.innerHTML = ""; 
+    const input = document.getElementById('inputText').value;
+    const resDiv = document.getElementById('risultati');
+    resDiv.innerHTML = ""; 
 
-            // Trova tutti gli ID player e alliance nel testo
-            const playerIDs = [...input.matchAll(/player\?(\d+)/g)].map(m => parseInt(m[1]));
-            const allianceIDs = [...input.matchAll(/alliance\?(\d+)/g)].map(m => parseInt(m[1]));
+    const playerIDs = [...input.matchAll(/player\?(\d+)/g)].map(m => parseInt(m[1]));
+    const allianceIDs = [...input.matchAll(/alliance\?(\d+)/g)].map(m => parseInt(m[1]));
 
-            if (playerIDs.length === 0 && allianceIDs.length === 0) {
-                alert("⚠️ Nessun link valido trovato!");
-                return;
-            }
+    let filtrati = db.filter(c => playerIDs.includes(c.p) || allianceIDs.includes(c.a));
 
-            // Filtra i castelli (cerca sia per player che per alleanza)
-            let filtrati = db.filter(c => playerIDs.includes(c.p) || allianceIDs.includes(c.a));
+    if (filtrati.length === 0) {
+        resDiv.innerHTML = `<p style="text-align:center;">Nessun dato trovato.</p>`;
+        return;
+    }
 
-            if (filtrati.length === 0) {
-                resDiv.innerHTML = `<p style="text-align:center;">Nessun castello trovato nel database.</p>`;
-                return;
-            }
+    // Raggruppa per Player ID
+    const raggruppato = filtrati.reduce((acc, c) => {
+        if (!acc[c.p]) acc[c.p] = { nome: c.pn || "Giocatore " + c.p, castelli: [] };
+        acc[c.p].castelli.push(c);
+        return acc;
+    }, {});
 
-            // Raggruppa per Player ID
-            const raggruppato = filtrati.reduce((acc, c) => {
-                if (!acc[c.p]) acc[c.p] = [];
-                acc[c.p].push(c);
-                return { ...acc };
-            }, {});
+    let html = `<button class="btn-cerca" style="background:#2196F3; color:white; margin-bottom:20px;" onclick="exportReport()">📥 ESPORTA REPORT .TXT</button>`;
 
-            let html = `<button class="btn-cerca" style="background:#2196F3; color:white; margin-bottom:20px;" onclick="exportReport()">📥 ESPORTA REPORT .TXT</button>`;
+    Object.keys(raggruppato).forEach(pID => {
+        const player = raggruppato[pID];
+        player.castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
 
-            // Cicla sui giocatori raggruppati
-            Object.keys(raggruppato).forEach(pID => {
-                const castelli = raggruppato[pID];
-                // Ordina per punti decrescente
-                castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
+        html += `
+            <div class="player-group">
+                <div class="player-header" onclick="this.classList.toggle('active')">
+                    <span>👤 ${player.nome} (${player.castelli.length} habitat)</span>
+                    <span>▼</span>
+                </div>
+                <div class="player-content">`;
 
-                html += `<div style="text-align:left; margin-bottom:30px; border-bottom:2px solid #ffcc00; padding-bottom:5px;">
-                            <h3 style="margin:0; color:#ffcc00;">GIOCATORE ID: ${pID}</h3>
-                            <small style="color:#aaa;">Habitat totali: ${castelli.length}</small>
-                         </div>`;
+        player.castelli.forEach((c, index) => {
+            html += `
+                <div class="castello-card">
+                    <span class="castello-nome">${index + 1}. ${c.n || "Castello"}</span>
+                    <div class="castello-info"><b>${c.t || "Castello"}</b> • ${(c.pt || 0).toLocaleString()} pt</div>
+                    <a href="l+k://coordinate?${c.x}&${c.y}&327" class="castello-link">l+k://coordinates?${c.x},${c.y}&327</a>
+                </div>`;
+        });
 
-                castelli.forEach((c, index) => {
-                    const n = c.n || "Castello";
-                    const pt = (c.pt || 0).toLocaleString();
-                    const t = c.t || "Castello";
-                    const link = `l+k://coordinate?${c.x}&${c.y}&327`;
-                    
-                    html += `
-                        <div class="castello-card">
-                            <span class="castello-nome">${index + 1}. ${n}</span>
-                            <div class="castello-info"><b>${t}</b> • ${pt} punti</div>
-                            <a href="${link}" class="castello-link">l+k://coordinates?${c.x},${c.y}&327</a>
-                        </div>`;
-                });
-            });
+        html += `</div></div>`;
+    });
 
-            resDiv.innerHTML = html;
-        }
+    resDiv.innerHTML = html;
+}
         function exportReport() {
             const container = document.getElementById('risultati');
             let testoExport = "--- REPORT INTELLIGENCE L&K ---\n\n";
