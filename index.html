@@ -2,55 +2,78 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ricerca Giocatore - L&K Tool</title>
+    
+    <script src="https://re-panza.github.io/lk_tool/version.js"></script>
+    <script>
+      document.write(`<link rel="manifest" href="https://re-panza.github.io/lk_tool/manifest.json?v=${APP_VERSION}">`);
+    </script>
+
     <style>
-        body { background-color: #0f172a; color: #e8eefc; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
-        .nav-home { display: inline-block; margin-bottom: 20px; color: #60a5fa; text-decoration: none; font-weight: bold; border: 1px solid #60a5fa; padding: 8px 15px; border-radius: 8px; transition: 0.3s; }
-        .nav-home:hover { background: #60a5fa; color: #000; }
-        .container { max-width: 600px; margin: 0 auto; background: #111c33; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); }
-        h2 { color: #fff; margin-top: 0; }
-        
-        textarea { width: 100%; height: 100px; padding: 12px; margin: 15px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box; resize: none; font-family: monospace; }
-        textarea:focus { outline: none; border-color: #60a5fa; }
-        
-        /* Banner Errore */
-        #errorBanner { display: none; background: #450a0a; color: #f87171; padding: 12px; border-radius: 10px; border: 1px solid #7f1d1d; margin-bottom: 15px; font-size: 0.9em; font-weight: bold; }
+        :root {
+            --bg: #0f172a;
+            --card: #111c33;
+            --muted: #93a4c7;
+            --text: #e8eefc;
+            --accent: #60a5fa;
+            --border: rgba(255, 255, 255, .10);
+            --success: #34d399;
+            --danger: #f87171;
+        }
 
-        .btn-cerca { width: 100%; padding: 15px; background: #60a5fa; border: none; font-weight: bold; font-size: 1.1em; border-radius: 12px; cursor: pointer; color: #fff; transition: 0.2s; margin-bottom: 10px; }
+        body { background-color: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 20px; text-align: center; }
+        
+        .nav-header { display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto 20px auto; }
+        .btn-home { text-decoration: none; color: var(--accent); font-size: 14px; font-weight: 600; }
+
+        .container { max-width: 600px; margin: 0 auto; background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        h2 { margin: 0 0 10px 0; font-size: 22px; }
+        #stato { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+
+        textarea { width: 100%; height: 100px; padding: 12px; margin: 15px 0; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box; resize: none; font-size: 14px; }
+        
+        #errorBanner { display: none; background: rgba(248, 113, 113, 0.1); color: var(--danger); padding: 12px; border-radius: 10px; border: 1px solid var(--danger); margin-bottom: 15px; font-size: 13px; font-weight: 600; }
+
+        .btn-cerca { width: 100%; padding: 15px; background: var(--accent); border: none; font-weight: 700; font-size: 16px; border-radius: 12px; cursor: pointer; color: #fff; margin-bottom: 10px; }
+        
         .btn-export-box { display: flex; gap: 10px; margin: 20px 0; display: none; }
-        .btn-exp { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; }
-        .btn-sel { background: #34d399; color: #064e3b; }
-        .btn-all { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-exp { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-sel { background: var(--success); color: #064e3b; }
+        .btn-all { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
 
-        #stato { font-size: 0.9em; margin-bottom: 10px; color: #93a4c7; }
-        
-        .player-group { margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; text-align: left; }
-        .player-header { background: rgba(255,255,255,0.03); color: #60a5fa; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .player-content { display: none; padding: 10px; background: rgba(0,0,0,0.1); border-top: 1px solid rgba(255,255,255,0.1); }
+        /* Gruppi Giocatori */
+        .player-group { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; text-align: left; }
+        .player-header { background: rgba(255,255,255,0.02); color: var(--accent); padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+        .player-content { display: none; padding: 10px; background: rgba(0,0,0,0.1); }
         .player-header.active + .player-content { display: block; }
 
-        .castello-card { background: rgba(255,255,255,0.02); padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #60a5fa; display: flex; align-items: center; gap: 12px; }
-        .hab-check { width: 18px; height: 18px; cursor: pointer; accent-color: #34d399; }
-        .castello-nome { font-weight: bold; color: #fff; display: block; }
-        .castello-info { font-size: 0.85em; color: #93a4c7; }
-        .castello-link { color: #60a5fa; text-decoration: none; font-family: monospace; font-size: 0.85em; display: block; margin-top: 5px; word-break: break-all; opacity: 0.8; }
-        
-        .footer { margin-top: 30px; font-size: 0.8em; color: #93a4c7; }
-        .paypal-btn { color: #60a5fa; text-decoration: none; font-weight: bold; }
+        /* Card Habitat */
+        .castello-card { background: rgba(255,255,255,0.02); padding: 12px; margin-bottom: 8px; border-radius: 10px; border-left: 4px solid var(--accent); display: flex; align-items: center; gap: 12px; }
+        .hab-check { width: 18px; height: 18px; cursor: pointer; accent-color: var(--success); }
+        .castello-nome { font-weight: 700; color: #fff; display: block; font-size: 15px; }
+        .castello-info { font-size: 13px; color: var(--muted); margin-top: 2px; }
+        .castello-link { color: var(--accent); text-decoration: none; font-family: monospace; font-size: 12px; display: block; margin-top: 6px; opacity: 0.7; }
+
+        .paypal-footer { margin-top: 40px; text-align: center; border-top: 1px solid var(--border); padding-top: 24px; }
+        .paypal-button { display: inline-flex; align-items: center; gap: 8px; background: #ffc439; color: #000; padding: 10px 20px; border-radius: 100px; text-decoration: none; font-weight: 700; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <a href="https://re-panza.github.io/lk_tool/" class="nav-home">⬅ Torna alla Home</a>
+    <div class="nav-header">
+        <a href="https://re-panza.github.io/lk_tool/index.html" class="btn-home">← Home</a>
+        <div style="font-size: 10px; color: var(--muted);">v<script>document.write(APP_VERSION)</script></div>
+    </div>
 
     <div class="container">
         <h2>🔍 Intelligence Mondiale</h2>
-        <div id="stato">Connessione al database...</div>
+        <div id="stato">Caricamento database...</div>
         
-        <textarea id="inputText" placeholder="Esempio:&#10;Nome giocatore: Re Panza&#10;l+k://player?605&327"></textarea>
-        
-        <div id="errorBanner">⚠️ Errore: Incolla sia il 'Nome giocatore' che il link 'l+k://player'</div>
+        <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
+
+        <textarea id="inputText" placeholder="Incolla qui il profilo...&#10;Nome giocatore: Re Panza&#10;l+k://player?605&327"></textarea>
         
         <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
 
@@ -62,10 +85,10 @@
         <div id="risultati"></div>
     </div>
 
-    <div class="footer">
-        L&K Tool by Re Panza<br><br>
-        <a href="https://www.paypal.com/paypalme/filippocutrupi" target="_blank" class="paypal-btn">☕ Offrimi un caffè su PayPal</a>
-    </div>
+    <footer class="paypal-footer">
+        <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">Offrimi un caffè se il tool ti è utile!</p>
+        <a href="https://www.paypal.me/AmedeoPanza" target="_blank" class="paypal-button">PayPal</a>
+    </footer>
 
     <script>
         let db = [];
@@ -99,11 +122,10 @@
             
             resDiv.innerHTML = ""; 
             errorBanner.style.display = "none";
-            exportDiv.style.display = "none";
 
-            // Controllo validità input
             if (!input.toLowerCase().includes("nome giocatore:") || !input.includes("l+k://player?")) {
                 errorBanner.style.display = "block";
+                exportDiv.style.display = "none";
                 return;
             }
 
@@ -117,10 +139,7 @@
                 if (idMatch) {
                     const pID = parseInt(idMatch[1]);
                     let castelli = db.filter(c => c.p === pID);
-                    
-                    // Ordinamento per punti decrescente
                     castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
-
                     renderPlayerGroup(nomePlayer, castelli, resDiv);
                     exportDiv.style.display = "flex";
                 }
@@ -133,15 +152,14 @@
             
             let itemsHtml = castelli.map((c, i) => {
                 const tipo = getTipoHabitat(c.t);
-                const coord = `${c.x}|${c.y}`;
-                const link = `l+k://coordinates?${c.x},${c.y}&327`;
+                const link = `l+k://coordinates?${c.x}&${c.y}&327`;
                 const punti = (c.pt || 0).toLocaleString();
                 
                 return `
                     <div class="castello-card">
                         <input type="checkbox" class="hab-check" 
-                               data-nome="${c.n}" data-coord="${coord}" 
-                               data-link="${link}" data-tipo="${tipo}">
+                               data-nome="${c.n}" data-tipo="${tipo}" 
+                               data-punti="${punti}" data-link="${link}">
                         <div style="flex-grow:1">
                             <span class="castello-nome">${i+1}. ${c.n || 'Senza Nome'}</span>
                             <span class="castello-info"><b>${tipo}</b> • ${punti} pt</span>
@@ -156,7 +174,7 @@
                     <span>▼</span>
                 </div>
                 <div class="player-content">
-                    ${castelli.length > 0 ? itemsHtml : '<p style="padding:15px; color:#93a4c7; font-size:0.9em;">Nessun dato trovato per questo ID.</p>'}
+                    ${castelli.length > 0 ? itemsHtml : '<p style="padding:15px; color:var(--muted); font-size:13px;">Nessun dato trovato.</p>'}
                 </div>
             `;
             container.appendChild(group);
@@ -169,7 +187,8 @@
 
             checkboxes.forEach(cb => {
                 if (!soloSelezionati || cb.checked) {
-                    testo += `${cb.dataset.tipo}: ${cb.dataset.nome} (${cb.dataset.coord})\nLink: ${cb.dataset.link}\n\n`;
+                    // RIMOSSE COORDINATE ANCHE DA QUI (rimane solo il link)
+                    testo += `${cb.dataset.tipo}: ${cb.dataset.nome} (${cb.dataset.punti} pt)\nLink: ${cb.dataset.link}\n\n`;
                     count++;
                 }
             });
@@ -180,7 +199,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Report_${new Date().toISOString().slice(0,10)}.txt`;
+            a.download = `Report_Intelligence.txt`;
             a.click();
         }
     </script>
