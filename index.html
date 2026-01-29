@@ -240,8 +240,8 @@ const configMondi = {
 
             // 1. Controllo validità e identificazione Mondo
             const matchMondo = input.match(/&(\d+)/);
-            if (!input.toLowerCase().includes("nome giocatore:") || !input.includes("l+k://player?") || !matchMondo) {
-                errorBanner.style.display = "block";
+            const regexGiocatore = /(?:nome\s+)?giocatore:/i;
+            if (!regexGiocatore.test(input) || !input.includes("l+k://player?") || !matchMondo) {
                 exportDiv.style.display = "none";
                 return;
             }
@@ -266,7 +266,7 @@ const configMondi = {
             }
 
             // 3. Elaborazione dei risultati
-            const chunks = input.split(/Nome giocatore:/i).filter(c => c.trim() !== "");
+           const chunks = input.split(regexGiocatore).filter(c => c.trim() !== "");
             chunks.forEach(chunk => {
                 const linee = chunk.trim().split('\n');
                 const nomePlayer = linee[0].trim();
