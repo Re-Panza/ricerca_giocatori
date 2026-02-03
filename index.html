@@ -237,11 +237,6 @@
     let db = [];
 let mondoCaricatoAttualmente = "";
 
-// Mappa dei database per ogni mondo
-const configMondi = {
-    "327": "https://re-panza.github.io/lk_tool/mondo327.json",
-    "337": "https://lkscanner337.github.io/scanner/mondo337.json"
-};
         function getTipoHabitat(t) {
             const tipo = String(t).trim();
             if (tipo === "0") return "Castello";
@@ -258,69 +253,104 @@ const configMondi = {
             
             resDiv.innerHTML = ""; 
             errorBanner.style.display = "none";
+            exportDiv.style.display = "none"; // Nascondi export se nuova ricerca
 
-        
-           // 1. Controllo validità e identificazione Mondo
-            const matchMondo = input.match(/&(\d+)/);
-            const regexGiocatore = /(?:nome\s+)?giocatore:/i;
+            // 1. Cerca un link valido L&K (Player o Alliance)
+            // Esempio: l+k://player?123&337 oppure l+k://alliance?4&337
+            const matchLink = input.match(/(player|alliance)\?(\d+)&(\d+)/);
 
-            if (!regexGiocatore.test(input) || !input.includes("l+k://player?") || !matchMondo) {
+            if (!matchLink) {
                 document.getElementById('errorBanner').style.display = "block";
-                exportDiv.style.display = "none";
                 return;
             }
 
-            const mondoScelto = matchMondo[1];
+            const tipoEntita = matchLink[1]; // "player" o "alliance"
+            const idEntita = parseInt(matchLink[2]); // ID numerico
+            const mondoScelto = matchLink[3]; // Numero mondo (es. 327 o 337)
 
-            // 2. Caricamento dinamico del DB se il mondo è cambiato
+            // 2. Selezione Dinamica del Database
+            // Se mondo è 327 -> lk_scanner. Se altro -> lk_database
+            let urlDB = "";
+            let urlDB = "";
+            if (mondoScelto === "327") {
+                // Mondo 327 è in lk_scanner
+                urlDB = "https://re-panza.github.io/lk_scanner/database_mondo_327.json";
+            } else {
+                // Mondo 337 e altri sono in lk_database
+                // Il percorso corretto è: re-panza.github.io/lk_database/database_mondo_337.json
+                urlDB = `https://re-panza.github.io/lk_database/database_mondo_${mondoScelto}.json`;
+            }
+
+            // 3. Caricamento Dati (solo se serve)
             if (mondoCaricatoAttualmente !== mondoScelto) {
-                const url = configMondi[mondoScelto];
-                if (!url) {
-                    alert("Mondo " + mondoScelto + " non supportato!");
-                    return;
-                }
                 try {
-                    const risposta = await fetch(url + "?v=" + Date.now());
+                    const risposta = await fetch(urlDB + "?v=" + Date.now());
+                    if (!risposta.ok) throw new Error("DB non trovato");
                     db = await risposta.json();
                     mondoCaricatoAttualmente = mondoScelto;
                 } catch (err) { 
-                    alert("Errore nel caricamento dei dati del Mondo " + mondoScelto);
+                    alert("Impossibile caricare il database per il Mondo " + mondoScelto);
                     return;
                 }
             }
 
-            // 3. Elaborazione dei risultati
-          const chunks = input.split(regexGiocatore).filter(c => c.trim() !== "");
-            chunks.forEach(chunk => {
-                const linee = chunk.trim().split('\n');
-                const nomePlayer = linee[0].trim();
-                const idMatch = chunk.match(/player\?(\d+)/);
-
-                if (idMatch) {
-                    const pID = parseInt(idMatch[1]);
-                    let castelli = db.filter(c => c.p === pID);
-                    castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
-                    renderPlayerGroup(nomePlayer, castelli, resDiv, mondoScelto);
-                    exportDiv.style.display = "flex";
+            // 4. Filtraggio Risultati (Player o Alleanza)
+            let castelli = db.filter(c => {
+                if (tipoEntita === 'alliance') {
+                    return c.a === idEntita; // Confronta ID Alleanza
+                } else {
+                    return c.p === idEntita; // Confronta ID Player
                 }
             });
-        }
 
+            if (castelli.length > 0) {
+                // Ordina per punti decrescenti
+                castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
+                
+                // Determina il nome da visualizzare nell'intestazione
+                // Se è un'alleanza, usiamo il nome del primo castello trovato (campo 'an' se esiste, o generico)
+                let nomeDisplay = tipoEntita === 'alliance' 
+                    ? `Alleanza ID: ${idEntita}` 
+                    : `Giocatore ID: ${idEntita}`;
+                
+                // Se abbiamo trovato castelli, proviamo a prendere il nome dal primo risultato
+                if (castelli[0].n && tipoEntita === 'player') nomeDisplay = "Giocatore: " + castelli[0].n;
+                // Nota: I tuoi JSON attuali potrebbero non avere il nome alleanza in ogni castello, quindi usiamo l'ID per sicurezza
+
+                renderPlayerGroup(nomeDisplay, castelli, resDiv, mondoScelto);
+                exportDiv.style.display = "flex";
+            } else {
+                resDiv.innerHTML = `<p style="text-align:center; color:#93a4c7; margin-top:20px;">Nessun castello trovato per questo ID nel Mondo ${mondoScelto}.</p>`;
+            }
+        }
         function renderPlayerGroup(nome, castelli, container, mondo) {
             const group = document.createElement('div');
             group.className = 'player-group';
+            
             let itemsHtml = castelli.map((c, i) => {
                 const tipo = getTipoHabitat(c.t);
-                // NOTA: Abbiamo aggiunto la variabile 'mondo' dinamica qui sotto
                 const link = `l+k://coordinates?${c.x},${c.y}&${mondo}`;
                 const punti = (c.pt || 0).toLocaleString();
+                
+                // --- NUOVA LOGICA INATTIVITÀ ---
+                const isInactive = c.i === true;
+                const lastUpdate = c.u ? new Date(c.u).toLocaleDateString('it-IT') : 'N/D';
+                
+                const badgeStatus = isInactive 
+                    ? `<span style="color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">⚠️ INATTIVO (${lastUpdate})</span>` 
+                    : `<span style="color:#34d399; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">✅ ATTIVO</span>`;
+                // -------------------------------
+
                 return `
                     <div class="castello-card">
                         <input type="checkbox" class="hab-check" 
                                data-nome="${c.n}" data-tipo="${tipo}" 
                                data-punti="${punti}" data-link="${link}">
                         <div style="flex-grow:1">
-                            <span class="castello-nome">${i+1}. ${c.n || 'Senza Nome'}</span>
+                            <span class="castello-nome">
+                                ${i+1}. ${c.n || 'Senza Nome'} 
+                                ${badgeStatus}
+                            </span>
                             <span class="castello-info"><b>${tipo}</b> • ${punti} pt</span>
                             <a href="${link}" class="castello-link">${link}</a>
                         </div>
@@ -328,11 +358,11 @@ const configMondi = {
             }).join('');
 
             group.innerHTML = `
-                <div class="player-header" onclick="this.classList.toggle('active')">
+                <div class="player-header active" onclick="this.classList.toggle('active'); this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none';">
                     <span>👤 ${nome} (${castelli.length})</span>
                     <span>▼</span>
                 </div>
-                <div class="player-content">${castelli.length > 0 ? itemsHtml : '<p style="padding:15px; color:var(--muted); font-size:13px;">Nessun dato trovato.</p>'}</div>
+                <div class="player-content" style="display:block">${itemsHtml}</div>
             `;
             container.appendChild(group);
         }
