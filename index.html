@@ -13,6 +13,7 @@
 
     <script src="https://re-panza.github.io/lk_tool/version.js"></script>
     <script>
+        const APP_VERSION = typeof APP_VERSION !== 'undefined' ? APP_VERSION : '1.0';
         document.write(`<link rel="manifest" href="https://re-panza.github.io/lk_tool/manifest.json?v=${APP_VERSION}">`);
     </script>
 
@@ -48,7 +49,6 @@
             line-height: 1.5;
         }
 
-        /* Container settato esattamente come index_calcola */
         .container {
             max-width: 500px;
             margin: 0 auto;
@@ -245,7 +245,7 @@
             opacity: 0.6;
         }
 
-        /* Footer identico a Calcola */
+        /* Footer */
         .paypal-footer {
             text-align: center;
             margin-top: 40px;
@@ -371,7 +371,7 @@
         <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
 
         <textarea id="inputText"
-            placeholder="Incolla qui il profilo...&#10;Nome giocatore: Re Panza&#10;l+k://player?605&327"></textarea>
+            placeholder="Incolla qui il profilo o link...&#10;Esempio: l+k://alliance?11&337"></textarea>
 
         <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
 
@@ -391,7 +391,8 @@
     </footer>
 
     <script>
-        let db = [];
+        let dbCastelli = [];
+        let dbNomiMap = {}; // Mappa ID -> Nome
         let mondoCaricatoAttualmente = "";
 
         function getTipoHabitat(t) {
@@ -407,50 +408,46 @@
             const resDiv = document.getElementById('risultati');
             const exportDiv = document.getElementById('export-buttons');
             const errorBanner = document.getElementById('errorBanner');
-            const errorMessage = document.getElementById('errorMessage') || errorBanner; // Fallback se non c'è span interno
 
             resDiv.innerHTML = "";
             errorBanner.style.display = "none";
             exportDiv.style.display = "none";
 
-            // Regex per trovare "Nome giocatore: <nome>" seguito dal link
-            // Supporta "Nome giocatore" o "Giocatore" (case insensitive)
-            // Cattura: Gruppo 1 (Nome), Gruppo 2 (ID), Gruppo 3 (Mondo)
+            // 1. Parsing Input
             const playerPattern = /(?:Nome\s*giocatore|Giocatore)\s*:\s*([^\n\r]+)\s+(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
-
-            // Regex semplice per contare i link totali
-            const totalPlayerLinksMatch = input.match(/(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)/gi);
-            const totalPlayerLinks = totalPlayerLinksMatch ? totalPlayerLinksMatch.length : 0;
-
             const namedMatches = [...input.matchAll(playerPattern)];
+            
+            // Regex universale per player link
+            const simplePlayerPattern = /(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
+            const simplePlayerMatches = [...input.matchAll(simplePlayerPattern)];
 
-            // Regex per Alleanze (non richiedono nome obbligatorio da input, usiamo quello del DB)
+            // Regex Alleanze
             const alliancePattern = /(?:l\+k:\/\/|https?:\/\/.*?)alliance\?(\d+)&(\d+)/gi;
             const allianceMatches = [...input.matchAll(alliancePattern)];
 
-            // Validazione: Se ci sono link player ma non corrispondono al pattern con nome
-            if (totalPlayerLinks > 0 && namedMatches.length < totalPlayerLinks) {
-                errorBanner.innerHTML = "⚠️ ERRORE: Ogni link giocatore deve essere preceduto da 'Nome giocatore: Tizio'.";
+            if (simplePlayerMatches.length === 0 && allianceMatches.length === 0) {
+                errorBanner.innerHTML = "⚠️ Incolla un link giocatore o alleanza valido.";
                 errorBanner.style.display = "block";
                 return;
             }
 
-            if (namedMatches.length === 0 && allianceMatches.length === 0) {
-                errorBanner.innerHTML = "⚠️ Incolla 'Nome giocatore: ...' e il link 'l+k://player' (o alliance).";
-                errorBanner.style.display = "block";
-                return;
-            }
-
-            // Mappatura ID -> Nome inserito (Solo per player)
-            const mapIdToName = {};
+            // Mappatura ID -> Nome (da input utente)
+            const mapIdToNameInput = {};
             const targetPlayerIds = new Set();
             let mondoScelto = null;
 
+            // Priorità ai match con nome esplicito
             namedMatches.forEach(m => {
                 const nome = m[1].trim();
                 const id = parseInt(m[2]);
                 const mondo = m[3];
-                mapIdToName[id] = nome;
+                mapIdToNameInput[id] = nome;
+            });
+
+            // Aggiungi tutti i player ID trovati
+            simplePlayerMatches.forEach(m => {
+                const id = parseInt(m[1]);
+                const mondo = m[2];
                 targetPlayerIds.add(id);
                 if (!mondoScelto) mondoScelto = mondo;
             });
@@ -463,29 +460,61 @@
                 if (!mondoScelto) mondoScelto = mondo; // Se non c'era player, usa mondo ally
             });
 
-            // 2. Selezione Database
-            let urlDB;
+            // 2. Configurazione Database (URL)
+            let urlDBCastelli;
+            let urlDBNomi = null;
+
             if (mondoScelto === "327") {
-                urlDB = "https://re-panza.github.io/lk_scanner/database_mondo_327.json";
+                urlDBCastelli = "https://re-panza.github.io/lk_scanner/database_mondo_327.json";
+                urlDBNomi = "https://raw.githubusercontent.com/Re-Panza/scanner_classifica327/main/database_classificamondo327.json";
+            } else if (mondoScelto === "337") {
+                urlDBCastelli = "https://re-panza.github.io/lk_database/database_mondo_337.json";
+                urlDBNomi = "https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_classificamondo337.json";
             } else {
-                urlDB = `https://re-panza.github.io/lk_database/database_mondo_${mondoScelto}.json`;
+                urlDBCastelli = `https://re-panza.github.io/lk_database/database_mondo_${mondoScelto}.json`;
             }
 
-            // 3. Caricamento Dati
+            // 3. Caricamento Dati (Parallelo)
             if (mondoCaricatoAttualmente !== mondoScelto) {
                 try {
-                    const risposta = await fetch(urlDB + "?v=" + Date.now());
-                    if (!risposta.ok) throw new Error("DB non trovato");
-                    db = await risposta.json();
+                    const promises = [fetch(urlDBCastelli + "?v=" + Date.now()).then(r => r.json())];
+                    
+                    if (urlDBNomi) {
+                        promises.push(
+                            fetch(urlDBNomi + "?v=" + Date.now())
+                            .then(r => r.ok ? r.json() : []) 
+                            .catch(() => [])
+                        );
+                    } else {
+                        promises.push(Promise.resolve([]));
+                    }
+
+                    const [datiCastelli, datiNomi] = await Promise.all(promises);
+                    
+                    dbCastelli = datiCastelli;
+                    
+                    // Costruiamo la mappa ID -> Nome
+                    dbNomiMap = {};
+                    if (Array.isArray(datiNomi)) {
+                        datiNomi.forEach(p => {
+                            const n = p.nick || p.name || p.n;
+                            const pid = p.id || p.p;
+                            if (pid && n) {
+                                dbNomiMap[parseInt(pid)] = n;
+                            }
+                        });
+                    }
+
                     mondoCaricatoAttualmente = mondoScelto;
                 } catch (err) {
-                    alert("Impossibile caricare il database per il Mondo " + mondoScelto);
+                    console.error(err);
+                    alert("Impossibile caricare i database per il Mondo " + mondoScelto);
                     return;
                 }
             }
 
-            // 4. Filtraggio
-            let castelliTrovati = db.filter(c => {
+            // 4. Filtraggio Castelli
+            let castelliTrovati = dbCastelli.filter(c => {
                 if (targetPlayerIds.has(c.p)) return true;
                 if (targetAllianceIds.has(c.a)) return true;
                 return false;
@@ -496,7 +525,7 @@
                 return;
             }
 
-            // Raggruppamento
+            // Raggruppamento per Giocatore
             const gruppiPerGiocatore = {};
             castelliTrovati.forEach(c => {
                 if (!gruppiPerGiocatore[c.p]) {
@@ -505,35 +534,54 @@
                 gruppiPerGiocatore[c.p].push(c);
             });
 
-            // 5. Render dei risultati raggruppati per giocatore
-            const idsGiocatori = Object.keys(gruppiPerGiocatore);
-
-            idsGiocatori.forEach(pid => {
+            // 5. ORDINAMENTO E RENDER
+            // Creiamo un array di oggetti per poterli ordinare
+            const listaGiocatori = Object.keys(gruppiPerGiocatore).map(pid => {
                 const idNumerico = parseInt(pid);
-                let castelli = gruppiPerGiocatore[pid];
-
-                // Ordina per punti decrescenti
+                const castelli = gruppiPerGiocatore[pid];
+                
+                // Ordina castelli per punti decrescenti
                 castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
+                
+                // Calcola il punteggio totale del giocatore (somma dei castelli visibili)
+                const totalePunti = castelli.reduce((acc, c) => acc + (c.pt || 0), 0);
+                
+                // Risoluzione Nome
+                const nomeGiocatore = mapIdToNameInput[idNumerico] || dbNomiMap[idNumerico] || "ID: " + pid;
 
-                let nomeGiocatore = mapIdToName[idNumerico] || "ID: " + pid;
-                let nomeDisplay = nomeGiocatore;
+                return {
+                    id: idNumerico,
+                    nome: nomeGiocatore,
+                    castelli: castelli,
+                    puntiTotali: totalePunti
+                };
+            });
 
-                // Badge Inattivo/Attivo basato sul primo castello (o logica DB)
-                const isInactive = castelli[0].i === true;
+            // Ordina la lista giocatori dal più "grosso" al più piccolo
+            listaGiocatori.sort((a, b) => b.puntiTotali - a.puntiTotali);
+
+            // Renderizza a schermo
+            listaGiocatori.forEach(giocatore => {
+                const isInactive = giocatore.castelli[0].i === true;
+                let nomeDisplay = giocatore.nome;
+                
+                // Aggiungiamo i punti totali al nome per chiarezza
+                nomeDisplay += ` <span style="font-size:12px; color:#93a4c7">(${giocatore.puntiTotali.toLocaleString()} pt)</span>`;
+
                 if (isInactive) {
                     nomeDisplay += ` <span style="color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">⚠️ INATTIVO</span>`;
                 } else {
                     nomeDisplay += ` <span style="color:#34d399; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">✅ ATTIVO</span>`;
                 }
 
-                renderPlayerGroup(nomeDisplay, castelli, resDiv, mondoScelto);
+                renderPlayerGroup(nomeDisplay, giocatore.castelli, resDiv, mondoScelto);
             });
 
-            // Mostra i tasti di export solo se abbiamo risultati
-            if (idsGiocatori.length > 0) {
+            if (listaGiocatori.length > 0) {
                 exportDiv.style.display = "flex";
             }
-        } // <--- CHIUSURA CORRETTA DELLA FUNZIONE CERCA
+        }
+
         function renderPlayerGroup(nome, castelli, container, mondo) {
             const group = document.createElement('div');
             group.className = 'player-group';
@@ -542,15 +590,6 @@
                 const tipo = getTipoHabitat(c.t);
                 const link = `l+k://coordinates?${c.x},${c.y}&${mondo}`;
                 const punti = (c.pt || 0).toLocaleString();
-
-                // --- NUOVA LOGICA INATTIVITÀ ---
-                // const isInactive = c.i === true;
-                // const lastUpdate = c.u ? new Date(c.u).toLocaleDateString('it-IT') : 'N/D';
-
-                // const badgeStatus = isInactive
-                //     ? `<span style="color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">⚠️ INATTIVO (${lastUpdate})</span>`
-                //     : `<span style="color:#34d399; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">✅ ATTIVO</span>`;
-                // -------------------------------
 
                 return `
                     <div class="castello-card">
@@ -567,7 +606,6 @@
                     </div>`;
             }).join('');
 
-            // Header non active di default, content display none
             group.innerHTML = `
                 <div class="player-header" onclick="this.classList.toggle('active'); const content = this.nextElementSibling; content.style.display = content.style.display === 'block' ? 'none' : 'block';">
                     <span>👤 ${nome} (${castelli.length})</span>
@@ -635,3 +673,5 @@
             }
         });
     </script>
+</body>
+</html>
