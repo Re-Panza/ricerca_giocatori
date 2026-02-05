@@ -460,24 +460,32 @@
                 if (!mondoScelto) mondoScelto = mondo; // Se non c'era player, usa mondo ally
             });
 
-            // 2. Configurazione Database (URL)
+            // 2. Configurazione Database (URL CORRETTI CON RAW)
             let urlDBCastelli;
             let urlDBNomi = null;
+            
+            // Forziamo la conversione in stringa per evitare errori di tipo
+            const mondoStr = String(mondoScelto).trim();
 
-            if (mondoScelto === "327") {
-                urlDBCastelli = "https://re-panza.github.io/lk_scanner/database_mondo_327.json";
+            if (mondoStr === "327") {
+                // *** CONFIGURAZIONE SPECIFICA PER MONDO 327 ***
+                // Castelli -> lk_scanner
+                urlDBCastelli = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json";
+                // Nomi -> scanner_classifica327
                 urlDBNomi = "https://raw.githubusercontent.com/Re-Panza/scanner_classifica327/main/database_classificamondo327.json";
-            } else if (mondoScelto === "337") {
-                urlDBCastelli = "https://re-panza.github.io/lk_database/database_mondo_337.json";
-                urlDBNomi = "https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_classificamondo337.json";
             } else {
-                urlDBCastelli = `https://re-panza.github.io/lk_database/database_mondo_${mondoScelto}.json`;
+                // *** CONFIGURAZIONE STANDARD (lk_database) PER ALTRI MONDI (es. 237, 337) ***
+                urlDBCastelli = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${mondoStr}.json`;
+                urlDBNomi = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_classificamondo${mondoStr}.json`;
             }
 
             // 3. Caricamento Dati (Parallelo)
-            if (mondoCaricatoAttualmente !== mondoScelto) {
+            if (mondoCaricatoAttualmente !== mondoStr) {
                 try {
-                    const promises = [fetch(urlDBCastelli + "?v=" + Date.now()).then(r => r.json())];
+                    const promises = [fetch(urlDBCastelli + "?v=" + Date.now()).then(r => {
+                        if (!r.ok) throw new Error("File castelli non trovato: " + r.status);
+                        return r.json();
+                    })];
                     
                     if (urlDBNomi) {
                         promises.push(
@@ -505,10 +513,10 @@
                         });
                     }
 
-                    mondoCaricatoAttualmente = mondoScelto;
+                    mondoCaricatoAttualmente = mondoStr;
                 } catch (err) {
                     console.error(err);
-                    alert("Impossibile caricare i database per il Mondo " + mondoScelto);
+                    alert(`Impossibile caricare i database per il Mondo ${mondoStr}.\nErrore: ${err.message}\nLink tentato: ${urlDBCastelli}`);
                     return;
                 }
             }
@@ -521,7 +529,7 @@
             });
 
             if (castelliTrovati.length === 0) {
-                resDiv.innerHTML = `<p style="text-align:center; color:#93a4c7; margin-top:20px;">Nessun castello trovato nel Mondo ${mondoScelto}.</p>`;
+                resDiv.innerHTML = `<p style="text-align:center; color:#93a4c7; margin-top:20px;">Nessun castello trovato nel Mondo ${mondoStr}.</p>`;
                 return;
             }
 
@@ -574,7 +582,7 @@
                     nomeDisplay += ` <span style="color:#34d399; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">✅ ATTIVO</span>`;
                 }
 
-                renderPlayerGroup(nomeDisplay, giocatore.castelli, resDiv, mondoScelto);
+                renderPlayerGroup(nomeDisplay, giocatore.castelli, resDiv, mondoStr);
             });
 
             if (listaGiocatori.length > 0) {
@@ -664,10 +672,9 @@
             });
         }
 
-        // 3. FIX TASTO INVIO: Questo permette di inviare premendo "Enter"
+        // 3. FIX TASTO INVIO
         document.addEventListener('keypress', function (e) {
             const inputField = document.getElementById('ai-input');
-            // Se l'utente preme Invio mentre è nel campo di testo, clicca "Invia" per lui
             if (e.key === 'Enter' && document.activeElement === inputField) {
                 chiediAlRe();
             }
