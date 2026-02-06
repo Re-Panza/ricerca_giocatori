@@ -78,13 +78,51 @@
             font-size: 16px;
         }
 
-        h2 {
-            margin: 0 0 24px 0;
-            font-size: 26px;
+        /* STILE TITOLO AGGIORNATO */
+        .page-title {
+            max-width: 500px;
+            margin: 0 auto 24px auto;
+            text-align: left; /* Allineamento a sinistra */
+        }
+
+        .page-title h2 {
+            font-size: 24px;
             font-weight: 800;
             color: #fff;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 15px;
+            color: var(--muted);
+            padding-left: 4px;
+        }
+
+        .search-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-option span {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        /* ISTRUZIONI STILE */
+        .instructions {
             text-align: center;
-            letter-spacing: -0.02em;
+            font-size: 14px;
+            color: #e8eefc;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            opacity: 0.9;
         }
 
         textarea {
@@ -365,9 +403,17 @@
         <a href="https://re-panza.github.io/lk_tool/index.html" class="btn-home">🏠 Torna alla Home</a>
     </div>
 
-    <div class="container">
-        <h2>🔍 Ricerca Giocatore</h2>
+    <div class="page-title">
+        <h2>🔍 Ricerca Target</h2>
+        <div class="search-options">
+            <div class="search-option">👤 <span>Giocatori</span></div>
+            <div class="search-option">🛡️ <span>Alleanze</span></div>
+            <div class="search-option">💤 <span>Inattivi</span></div>
+        </div>
+    </div>
 
+    <div class="container">
+        
         <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
 
         <textarea id="inputText"
