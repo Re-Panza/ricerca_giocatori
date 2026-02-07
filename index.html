@@ -8,7 +8,9 @@
   
   <script src="https://re-panza.github.io/lk_tool/version.js"></script>
   <script>
-    document.write(`<link rel="manifest" href="https://re-panza.github.io/lk_tool/manifest.json?v=${APP_VERSION}">`);
+    if (typeof APP_VERSION !== 'undefined') {
+        document.write(`<link rel="manifest" href="https://re-panza.github.io/lk_tool/manifest.json?v=${APP_VERSION}">`);
+    }
   </script>
   <link rel="apple-touch-icon" href="https://re-panza.github.io/lk_tool/icona.png">
   <title>L&K: Calcola Partenze Truppe</title>
@@ -32,22 +34,18 @@
                   radial-gradient(1000px 500px at 90% 10%, rgba(52,211,153,.18), transparent 55%),
                   var(--bg);
       color: var(--text);
-      /* Padding dinamico: 20px di base, ma aumenta se c'è il notch dell'iPhone */
       padding: env(safe-area-inset-top, 20px) 24px 24px 24px;
       min-height: 100vh;
-      /* Impedisce selezioni fastidiose durante il gioco */
       -webkit-user-select: none;
       user-select: none;
       touch-action: manipulation;
     }
 
-    /* Riattiva la selezione solo dove scrivi o leggi i risultati */
     textarea, input, .result-card, .time-display {
       -webkit-user-select: text;
       user-select: text;
     }
 
-    /* Ottimizzazione padding per schermi piccoli */
     @media (max-width: 480px) {
         body { padding: 12px; }
     }
@@ -72,26 +70,19 @@
       border-radius: 16px;
       padding: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,.25);
-      margin-bottom: 20px; /* Questo evita che le card si attacchino */
+      margin-bottom: 20px;
     }
 
     .banner-group {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* Mette data e ora affiancati */
+        grid-template-columns: 1fr 1fr; 
         gap: 16px;
     }
 
-    /* Su cellulare li mette uno sotto l'altro */
-    @media (max-width: 600px) { 
-        .banner-group { grid-template-columns: 1fr; }
-    }
-    
-
-    /* Stack verticale dei selettori data/ora su mobile */
     @media (max-width: 600px) { 
         .banner-group { grid-template-columns: 1fr; }
         header { flex-direction: column; align-items: flex-start; }
-        .attack-row { grid-template-columns: 1fr !important; } /* Incolonna su mobile */
+        .attack-row { grid-template-columns: 1fr !important; }
         .time-inputs { width: 100%; justify-content: space-between; }
         .time-inputs input { flex: 1; }
     }
@@ -122,10 +113,9 @@
         font-size: 16px;
         font-family: inherit;
         outline: none;
-        appearance: none; /* Fondamentale per iOS */
+        appearance: none;
     }
     
-    /* Icona calendario bianca */
     .native-input::-webkit-calendar-picker-indicator {
         filter: invert(1);
         opacity: 0.6;
@@ -137,7 +127,7 @@
       border-radius: 12px;
       padding: 12px; color: var(--text);
       resize: none; outline: none; font-family: inherit;
-      font-size: 16px; /* Evita zoom automatico su iOS */
+      font-size: 16px; 
     }
 
     .attack-row {
@@ -193,10 +183,9 @@
     .target-link-anchor { 
         font-size: 11px; color: var(--accent); text-decoration: underline;
         font-family: monospace; cursor: pointer; background: none; border: none; padding: 0; text-align: left;
-        word-break: break-all; /* Evita che link lunghi spacchino il layout */
+        word-break: break-all;
     }
 
-    /* STYLE PAYPAL */
     .paypal-footer {
         text-align: center;
         margin-top: 40px;
@@ -219,7 +208,6 @@
     }
     .paypal-link:hover { background: rgba(0, 112, 186, 0.3); transform: translateY(-2px); }
 
-    /* --- STILE ASSISTENTE (COPIATO DA INDEX (1).HTML) --- */
     #ai-assistant-container {
         position: fixed;
         bottom: 20px;
@@ -241,11 +229,7 @@
         border: 2px solid var(--accent);
     }
 
-    #ai-button img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+    #ai-button img { width: 100%; height: 100%; object-fit: cover; }
 
     #ai-window {
         display: none;
@@ -356,10 +340,41 @@
   </div>
 </div>
 
+<footer class="paypal-footer">
+    <p style="font-size:12px; color:#93a4c7; margin-bottom:12px; font-family: sans-serif;">
+        Ti piace questo strumento?
+    </p>
+    <a href="https://paypal.me/Longo11" target="_blank" class="paypal-link">
+        ☕ Offrimi un caffè su PayPal
+    </a>
+</footer>
+
+<div id="ai-assistant-container">
+  <div id="ai-window">
+      <div class="ai-header">
+          <span>👑 Assistente Re Panza</span>
+          <span onclick="toggleAI()" style="cursor:pointer">×</span>
+      </div>
+      <div id="ai-content">
+          <p>Ciao! Sono Re Panza. Chiedimi pure consiglio per la tua conquista.</p>
+      </div>
+      <div class="ai-input-area">
+          <input type="text" id="ai-input" placeholder="Scrivi al Re...">
+          <button id="ai-send-btn" onclick="chiediAlRe()">Invia</button>
+      </div>
+  </div>
+  <div id="ai-button" onclick="toggleAI()">
+      <img src="https://re-panza.github.io/lk_tool/re-panza-ai.png" alt="Re Panza AI">
+  </div>
+</div>
+
+<script src="https://re-panza.github.io/lk_tool/common.js"></script>
+<script src="https://re-panza.github.io/re-panza-core/re_panza_brain.js"></script>
+
 <script>
-    /* ... (Il resto del codice JavaScript rimane identico all'originale) ... */
     let currentResults = [];
     setInterval(() => { document.getElementById('liveClock').textContent = new Date().toLocaleTimeString('it-IT'); }, 1000);
+    
     function updateDisplay(type) {
         const val = document.getElementById('common-' + type).value;
         if(val) {
@@ -367,24 +382,30 @@
             document.getElementById(type + 'Display').textContent = (type==='date'?'📅 ':'🕒 ') + txt;
         }
     }
+
     function generateList() {
-        const rawText = document.getElementById('s-textarea').value;
+        const rawText = document.getElementById('links-textarea').value;
         const container = document.getElementById('attack-list-container');
         container.innerHTML = '';
+        
+        // Regex per link l+k
         const linkRegex = /l\+k:\/\/coordinates?\?[0-9,]+&[0-9]+/g;
         const lines = rawText.split('\n');
         let count = 0;
         let match;
         const matches = [];
+        
         while ((match = linkRegex.exec(rawText)) !== null) {
             const lineIndex = rawText.substring(0, match.index).split('\n').length - 1;
             matches.push({ link: match[0], lineIndex: lineIndex });
         }
+        
         matches.forEach((m, i) => {
             count++;
             let name = "";
             const currentLine = lines[m.lineIndex] || "";
             let nameBeside = currentLine.replace(m.link, '').replace(/\u00a0/g, ' ').trim();
+            
             if (nameBeside.length > 3) {
                 name = nameBeside;
             } else if (m.lineIndex > 0) {
@@ -395,40 +416,77 @@
                 }
             }
             if (!name) name = `Target #${count}`;
+            
             const div = document.createElement('div');
             div.className = 'attack-row';
-            div.innerHTML = `<div><span class="target-name">${name}</span><button class="target-link-anchor" onclick="window.location.href='${m.link}'">${m.link}</button></div><div class="time-inputs"><input type="number" class="h-in" placeholder="Ore"><input type="number" class="m-in" placeholder="Min"><input type="hidden" class="link-val" value="${m.link}"><input type="hidden" class="name-val" value="${name}"></div>`;
+            
+            // --- MODIFICA QUI PER INSERIRE "INSERISCI TEMPO PERCORRENZA" ---
+            div.innerHTML = `
+                <div>
+                    <span class="target-name">${name}</span>
+                    <button class="target-link-anchor" onclick="window.location.href='${m.link}'">${m.link}</button>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                    <span style="font-size:10px; color:#93a4c7; margin-bottom:4px; text-transform:uppercase;">Inserisci tempo percorrenza</span>
+                    <div class="time-inputs">
+                        <input type="number" class="h-in" placeholder="Ore">
+                        <input type="number" class="m-in" placeholder="Min">
+                        <input type="hidden" class="link-val" value="${m.link}">
+                        <input type="hidden" class="name-val" value="${name}">
+                    </div>
+                </div>`;
+            
             container.appendChild(div);
         });
+        
         if(count === 0) { alert("Nessun link rilevato!"); return; }
         document.getElementById('list-section').style.display = 'block';
     }
+
     function calculateAll() {
         const dateVal = document.getElementById('common-date').value;
         const timeVal = document.getElementById('common-time').value;
         const resultsDiv = document.getElementById('results-container');
         const rows = document.querySelectorAll('.attack-row');
+        
         if (!dateVal || !timeVal) { alert("Inserisci Data e Ora!"); return; }
+        
         resultsDiv.innerHTML = '<h2 style="font-size:16px; margin:20px 0 10px 0;">📋 Orari di Partenza</h2>';
         const impactDate = new Date(`${dateVal}T${timeVal}:00`);
         currentResults = [];
+        
         rows.forEach((row) => {
             const h = parseInt(row.querySelector('.h-in').value) || 0;
             const m = parseInt(row.querySelector('.m-in').value) || 0;
             const link = row.querySelector('.link-val').value;
+            const coordStr = link.match(/coordinates\?([0-9,]+)&/)?.[1] || "";
             const name = row.querySelector('.name-val').value;
+            
             const totalSec = (h * 3600) + (m * 60);
             if (totalSec === 0) return;
+            
             let maxDelay = Math.min(totalSec * 0.05, 7200);
             const depLate = new Date(impactDate.getTime() - (totalSec * 1000));
             const depEarly = new Date(impactDate.getTime() - ((totalSec + maxDelay) * 1000));
+            
             const timeA = formatTime(depEarly);
             const timeB = formatTime(depLate);
+            
             currentResults.push({ name, link, range: `Parti tra le ${timeA} e le ${timeB}` });
-            resultsDiv.innerHTML += `<div class="result-card"><div class="target-name">${name}</div><button class="target-link-anchor" onclick="window.location.href='${link}'" style="margin-bottom:8px;">${link}</button><div class="res-range"><span>Parti tra le ${timeA} e le ${timeB}</span></div></div>`;
+            
+            resultsDiv.innerHTML += `
+            <div class="result-card">
+                <div class="target-name">${name}</div>
+                <button class="target-link-anchor" style="margin-bottom:8px;" onclick="copyToClipboard('${coordStr}')">
+                    ${link} (Copia)
+                </button>
+                <div class="res-range"><span>Parti tra le ${timeA} e le ${timeB}</span></div>
+            </div>`;
         });
+        
         if(currentResults.length > 0) document.getElementById('export-section').style.display = 'block';
     }
+
     function formatTime(date) {
         const hh = String(date.getHours()).padStart(2, '0');
         const mm = String(date.getMinutes()).padStart(2, '0');
@@ -437,6 +495,7 @@
         const mon = String(date.getMonth() + 1).padStart(2, '0');
         return `${hh}:${mm}:${ss} del ${dd}/${mon}`;
     }
+
    function exportToTxt() {
         let textContent = "⚔️ TABELLA DI MARCIA ATTACCO ⚔️\n-------------------------------------------\n\n";
         currentResults.forEach((res, i) => {
@@ -448,55 +507,14 @@
         link.download = 'piano_attacco_lk.txt';
         link.click();
     }
+    
+    // 2. Gestione Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js');
+        });
+    }
 </script>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    // Usa la versione caricata automaticamente da version.js
-    navigator.serviceWorker.register('https://re-panza.github.io/lk_tool/sw.js?v=' + APP_VERSION);
-  }
-</script>
-
-  <footer class="paypal-footer">
-      <p style="font-size:12px; color:#93a4c7; margin-bottom:12px; font-family: sans-serif;">
-          Ti piace questo strumento?
-      </p>
-      <a href="https://paypal.me/Longo11" target="_blank" class="paypal-link">
-          ☕ Offrimi un caffè su PayPal
-      </a>
-  </footer>
-
-  <div id="ai-assistant-container">
-    <div id="ai-window">
-        <div class="ai-header">
-            <span>👑 Assistente Re Panza</span>
-            <span onclick="toggleAI()" style="cursor:pointer">×</span>
-        </div>
-        <div id="ai-content">
-            <p>Ciao! Sono Re Panza. Chiedimi pure consiglio per la tua conquista.</p>
-        </div>
-        <div class="ai-input-area">
-            <input type="text" id="ai-input" placeholder="Scrivi al Re...">
-            <button id="ai-send-btn" onclick="chiediAlRe()">Invia</button>
-        </div>
-    </div>
-    <div id="ai-button" onclick="toggleAI()">
-        <img src="https://re-panza.github.io/lk_tool/re-panza-ai.png" alt="Re Panza AI">
-    </div>
-  </div>
-
-  <script src="https://re-panza.github.io/re-panza-core/re_panza_brain.js"></script>
-
-  <script>
-    // FIX TASTO INVIO: Questo permette di inviare premendo "Enter"
-    document.addEventListener('keypress', function (e) {
-        const inputField = document.getElementById('ai-input');
-        // Se l'utente preme Invio mentre è nel campo di testo, clicca "Invia" per lui
-        if (e.key === 'Enter' && document.activeElement === inputField) {
-            chiediAlRe();
-        }
-    });
-  </script>
 
 </body>
 </html>
