@@ -18,6 +18,7 @@
     </script>
 
     <style>
+        /* ... CSS INVARIATO ... */
         :root {
             --bg: #0f172a;
             --card: #111c33;
@@ -281,6 +282,7 @@
             display: block;
             margin-top: 8px;
             opacity: 0.6;
+            cursor: pointer; /* Aggiunto cursore */
         }
 
         /* Footer */
@@ -307,7 +309,7 @@
             border: none;
         }
 
-        /* --- STILE ASSISTENTE --- */
+        /* --- STILE ASSISTENTE COPIATO --- */
         #ai-assistant-container {
             position: fixed;
             bottom: 20px;
@@ -440,6 +442,8 @@
             ☕ Offrimi un caffè su PayPal
         </a>
     </footer>
+
+    <script src="https://re-panza.github.io/lk_tool/common.js"></script>
 
     <script>
         let dbCastelli = [];
@@ -649,6 +653,7 @@
                 const tipo = getTipoHabitat(c.t);
                 const link = `l+k://coordinates?${c.x},${c.y}&${mondo}`;
                 const punti = (c.pt || 0).toLocaleString();
+                const coordStr = `${c.x},${c.y}`;
 
                 return `
                     <div class="castello-card">
@@ -660,7 +665,9 @@
                                 ${i + 1}. ${c.n || 'Senza Nome'} 
                             </span>
                             <span class="castello-info"><b>${tipo}</b> • ${punti} pt</span>
-                            <a href="${link}" class="castello-link">${link}</a>
+                            <a href="${link}" class="castello-link" onclick="event.preventDefault(); copyToClipboard('${coordStr}')">
+                                ${link} (Clicca per Copiare)
+                            </a>
                         </div>
                     </div>`;
             }).join('');
@@ -722,14 +729,6 @@
                 navigator.serviceWorker.register('sw.js');
             });
         }
-
-        // 3. FIX TASTO INVIO
-        document.addEventListener('keypress', function (e) {
-            const inputField = document.getElementById('ai-input');
-            if (e.key === 'Enter' && document.activeElement === inputField) {
-                chiediAlRe();
-            }
-        });
     </script>
 </body>
 </html>
