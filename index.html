@@ -339,9 +339,9 @@
     </div>
 
   <div class="card">
-    <h2>🔗 Incolla Testo</h2>
-    <textarea id="links-textarea" placeholder="Incolla report o link..."></textarea>
-    <button class="btn-secondary" onclick="generateList()">Analizza Testo</button>
+    <h2>🔗 Incolla link target</h2>
+    <textarea id="links-textarea" placeholder="Incolla report o link castelli attaccati (anche più link insieme)..."></textarea>
+    <button class="btn-secondary" onclick="generateList()">Analizza Target</button>
   </div>
 
   <div id="list-section" style="display:none;" class="card">
@@ -368,7 +368,7 @@
         }
     }
     function generateList() {
-        const rawText = document.getElementById('links-textarea').value;
+        const rawText = document.getElementById('s-textarea').value;
         const container = document.getElementById('attack-list-container');
         container.innerHTML = '';
         const linkRegex = /l\+k:\/\/coordinates?\?[0-9,]+&[0-9]+/g;
