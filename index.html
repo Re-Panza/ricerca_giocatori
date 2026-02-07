@@ -1,373 +1,1005 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="it">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://re-panza.github.io/lk_tool/icona.png">
 
-    <title>Ricerca Giocatore - L&K Tool</title>
+  <meta charset="utf-8" />
 
-    <script src="https://re-panza.github.io/lk_tool/version.js"></script>
-    <script>
-        const APP_VERSION = typeof APP_VERSION !== 'undefined' ? APP_VERSION : '1.0';
-        document.write(`<link rel="manifest" href="https://re-panza.github.io/lk_tool/manifest.json?v=${APP_VERSION}">`);
-    </script>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
-    <style>
-        :root {
-            --bg: #0f172a;
-            --card: #111c33;
-            --muted: #93a4c7;
-            --text: #e8eefc;
-            --accent: #60a5fa;
-            --border: rgba(255, 255, 255, .10);
-            --success: #34d399;
-            --danger: #ef4444;
-            --dangerBg: rgba(239, 68, 68, .12);
-        }
+  <meta name="apple-mobile-web-app-capable" content="yes">
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-        body {
-            margin: 0;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-            background: radial-gradient(1200px 600px at 20% 0%, rgba(96, 165, 250, .25), transparent 60%),
-                radial-gradient(1000px 500px at 90% 10%, rgba(52, 211, 153, .18), transparent 55%),
-                var(--bg);
-            color: var(--text);
-            padding: env(safe-area-inset-top, 20px) 20px 40px 20px;
-            -webkit-user-select: none; user-select: none; touch-action: manipulation; line-height: 1.5;
-        }
+  
 
-        .container {
-            max-width: 500px; margin: 0 auto; background: rgba(17, 28, 51, .80);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 32px 24px; border-radius: 24px; border: 1px solid var(--border);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
-        }
+  <script src="https://re-panza.github.io/lk_tool/version.js"></script>
 
-        .nav-header { max-width: 500px; margin: 0 auto 20px auto; display: flex; justify-content: flex-start; }
-        .btn-home { text-decoration: none; color: var(--accent); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; font-size: 16px; }
+  <script>
 
-        .page-title { max-width: 500px; margin: 0 auto 24px auto; text-align: left; }
-        .page-title h2 { font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px; }
-        .search-options { display: flex; flex-direction: column; gap: 6px; font-size: 15px; color: var(--muted); padding-left: 4px; }
-        .search-option { display: flex; align-items: center; gap: 8px; }
-        .search-option span { color: var(--text); font-weight: 500; }
+    document.write(`<link rel="manifest" href="https://re-panza.github.io/lk_tool/manifest.json?v=${APP_VERSION}">`);
 
-        .instructions { text-align: center; font-size: 14px; color: #e8eefc; margin-bottom: 16px; line-height: 1.5; opacity: 0.9; }
+  </script>
 
-        textarea {
-            width: 100%; height: 140px; padding: 16px; margin-bottom: 20px; border-radius: 16px;
-            border: 1px solid var(--border); background: rgba(255, 255, 255, .05); color: var(--text);
-            outline: none; font-size: 16px; font-family: inherit; resize: none;
-            -webkit-user-select: text; user-select: text; transition: border-color 0.2s;
-        }
-        textarea:focus { border-color: var(--accent); }
+  <link rel="apple-touch-icon" href="https://re-panza.github.io/lk_tool/icona.png">
 
-        #errorBanner {
-            display: none; margin-bottom: 20px; border: 1px solid rgba(239, 68, 68, .4);
-            background: var(--dangerBg); color: #ffcfcf; border-radius: 16px; padding: 14px;
-            font-size: 14px; font-weight: 600; text-align: center;
-        }
+  <title>L&K: Calcola Partenze Truppe</title>
 
-        .btn-cerca {
-            width: 100%; padding: 16px; background: var(--accent); border: none; font-weight: 800;
-            font-size: 17px; border-radius: 16px; cursor: pointer; color: #0f172a; margin-bottom: 12px;
-            transition: transform 0.1s, opacity 0.2s;
-        }
-        .btn-cerca:active { transform: scale(0.98); opacity: 0.9; }
+  <style>
 
-        .btn-export-box { display: flex; gap: 12px; margin-top: 10px; display: none; }
-        .btn-exp { flex: 1; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; font-size: 14px; border: 1px solid var(--border); }
-        .btn-sel { background: rgba(52, 211, 153, 0.1); color: var(--success); border-color: rgba(52, 211, 153, 0.3); }
-        .btn-all { background: rgba(255, 255, 255, 0.05); color: var(--muted); }
+    :root {
 
-        #risultati { margin-top: 24px; }
-        .player-group { margin-bottom: 16px; border: 1px solid var(--border); border-radius: 18px; overflow: hidden; background: rgba(255, 255, 255, .02); }
-        .player-header { padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; color: var(--accent); }
-        .player-content { display: none; padding: 12px; background: rgba(0, 0, 0, 0.2); border-top: 1px solid var(--border); }
-        .player-header.active+.player-content { display: block; }
+      --bg: #0f172a;
 
-        .castello-card {
-            background: rgba(255, 255, 255, .03); padding: 14px; margin-bottom: 10px;
-            border-radius: 14px; border: 1px solid var(--border); display: flex; align-items: center; gap: 14px;
-        }
-        .hab-check { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent); }
-        .castello-nome { font-weight: 700; color: #fff; display: block; font-size: 16px; }
-        .castello-info { font-size: 13px; color: var(--muted); margin-top: 3px; }
-        .castello-link {
-            color: var(--accent); text-decoration: none; font-family: monospace; font-size: 12px;
-            display: block; margin-top: 8px; opacity: 0.6; cursor: pointer;
-        }
+      --card: #111c33;
 
-        .paypal-footer { text-align: center; margin-top: 40px; padding: 30px 20px; border-top: 1px solid var(--border); }
-        .paypal-link {
-            text-decoration: none; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center;
-            gap: 10px; transition: 0.3s; color: #fff; background: #0070ba; padding: 12px 28px;
-            border-radius: 50px; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3); border: none;
-        }
+      --muted: #93a4c7;
 
-        /* TOAST MESSAGE (definito in common.js ma lo stile base aiuta) */
-        .toast { pointer-events: none; }
+      --text: #e8eefc;
 
-        /* Stile AI Button/Window gestito da common.js + CSS inline o copiato */
-        #ai-assistant-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
-        #ai-button { width: 70px; height: 70px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); overflow: hidden; border: 2px solid var(--accent); }
-        #ai-button img { width: 100%; height: 100%; object-fit: cover; }
-        #ai-window { display: none; position: absolute; bottom: 85px; right: 0; width: 85vw; max-width: 320px; background: var(--card); border: 1px solid var(--accent); border-radius: 20px; padding: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); }
-        .ai-header { color: var(--accent); font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        #ai-content { max-height: 250px; overflow-y: auto; margin-bottom: 10px; font-size: 13px; color: var(--text); }
-        .ai-input-area { display: flex; gap: 5px; border-top: 1px solid var(--border); padding-top: 10px; }
-        #ai-input { flex: 1; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 5px; padding: 8px; font-size: 12px; }
-        #ai-send-btn { background: var(--accent); border: none; border-radius: 5px; padding: 5px 15px; cursor: pointer; font-weight: bold; color: #000; }
-    </style>
+      --accent: #60a5fa;
+
+      --border: rgba(255, 255, 255, .10);
+
+      --success: #34d399;
+
+    }
+
+
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+
+
+    body {
+
+      margin: 0;
+
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(96,165,250,.25), transparent 60%),
+
+                  radial-gradient(1000px 500px at 90% 10%, rgba(52,211,153,.18), transparent 55%),
+
+                  var(--bg);
+
+      color: var(--text);
+
+      /* Padding dinamico: 20px di base, ma aumenta se c'è il notch dell'iPhone */
+
+      padding: env(safe-area-inset-top, 20px) 24px 24px 24px;
+
+      min-height: 100vh;
+
+      /* Impedisce selezioni fastidiose durante il gioco */
+
+      -webkit-user-select: none;
+
+      user-select: none;
+
+      touch-action: manipulation;
+
+    }
+
+
+
+    /* Riattiva la selezione solo dove scrivi o leggi i risultati */
+
+    textarea, input, .result-card, .time-display {
+
+      -webkit-user-select: text;
+
+      user-select: text;
+
+    }
+
+
+
+    /* Ottimizzazione padding per schermi piccoli */
+
+    @media (max-width: 480px) {
+
+        body { padding: 12px; }
+
+    }
+
+
+
+    .wrap { max-width: 980px; margin: 0 auto; }
+
+
+
+    header {
+
+      display: flex; gap: 14px; align-items: center; justify-content: space-between;
+
+      margin-bottom: 24px;
+
+    }
+
+
+
+    h1 { font-size: 22px; margin: 0; color: var(--text); }
+
+    .badge {
+
+      border: 1px solid var(--border);
+
+      padding: 6px 12px; border-radius: 999px;
+
+      color: var(--muted); font-size: 13px;
+
+      background: rgba(255,255,255,.03);
+
+    }
+
+    .card {
+
+      background: rgba(17, 28, 51, .85);
+
+      border: 1px solid var(--border);
+
+      border-radius: 16px;
+
+      padding: 20px;
+
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+
+      margin-bottom: 20px; /* Questo evita che le card si attacchino */
+
+    }
+
+
+
+    .banner-group {
+
+        display: grid;
+
+        grid-template-columns: 1fr 1fr; /* Mette data e ora affiancati */
+
+        gap: 16px;
+
+    }
+
+
+
+    /* Su cellulare li mette uno sotto l'altro */
+
+    @media (max-width: 600px) { 
+
+        .banner-group { grid-template-columns: 1fr; }
+
+    }
+
+    
+
+
+
+    /* Stack verticale dei selettori data/ora su mobile */
+
+    @media (max-width: 600px) { 
+
+        .banner-group { grid-template-columns: 1fr; }
+
+        header { flex-direction: column; align-items: flex-start; }
+
+        .attack-row { grid-template-columns: 1fr !important; } /* Incolonna su mobile */
+
+        .time-inputs { width: 100%; justify-content: space-between; }
+
+        .time-inputs input { flex: 1; }
+
+    }
+
+
+
+    .direct-input-group {
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 5px;
+
+        width: 100%;
+
+    }
+
+    
+
+    .direct-input-group label {
+
+        font-size: 13px;
+
+        font-weight: 700;
+
+        color: var(--accent);
+
+        text-transform: uppercase;
+
+        margin-left: 2px;
+
+    }
+
+
+
+    .native-input {
+
+        width: 100%;
+
+        height: 50px;
+
+        background: rgba(96, 165, 250, 0.1);
+
+        border: 1px solid rgba(96, 165, 250, 0.3);
+
+        border-radius: 12px;
+
+        color: white;
+
+        padding: 0 15px;
+
+        font-size: 16px;
+
+        font-family: inherit;
+
+        outline: none;
+
+        appearance: none; /* Fondamentale per iOS */
+
+    }
+
+    
+
+    /* Icona calendario bianca */
+
+    .native-input::-webkit-calendar-picker-indicator {
+
+        filter: invert(1);
+
+        opacity: 0.6;
+
+    }
+
+    textarea {
+
+      width: 100%; height: 120px;
+
+      background: rgba(0, 0, 0, 0.2);
+
+      border: 1px solid var(--border);
+
+      border-radius: 12px;
+
+      padding: 12px; color: var(--text);
+
+      resize: none; outline: none; font-family: inherit;
+
+      font-size: 16px; /* Evita zoom automatico su iOS */
+
+    }
+
+
+
+    .attack-row {
+
+      display: grid;
+
+      grid-template-columns: 1fr auto;
+
+      gap: 15px;
+
+      align-items: center;
+
+      padding: 14px;
+
+      background: rgba(255, 255, 255, 0.03);
+
+      border: 1px solid var(--border);
+
+      border-radius: 12px;
+
+      margin-bottom: 10px;
+
+    }
+
+
+
+    .time-inputs { display: flex; gap: 8px; }
+
+    .time-inputs input {
+
+      width: 75px; padding: 12px 5px;
+
+      background: rgba(255, 255, 255, 0.05);
+
+      border: 1px solid var(--border);
+
+      border-radius: 10px;
+
+      color: white; text-align: center; font-size: 15px;
+
+    }
+
+
+
+    button {
+
+      padding: 14px 20px; border-radius: 12px;
+
+      border: 1px solid rgba(96, 165, 250, .55);
+
+      background: rgba(96, 165, 250, .18);
+
+      color: var(--text); font-weight: 600;
+
+      cursor: pointer; width: 100%; transition: 0.2s;
+
+    }
+
+    button:hover { background: rgba(96, 165, 250, 0.25); }
+
+
+
+    .btn-secondary { background: rgba(255, 255, 255, 0.03); border-color: var(--border); color: var(--muted); margin-top: 10px; }
+
+    .btn-export { background: rgba(52, 211, 153, 0.15); border-color: var(--success); color: var(--success); margin-top: 15px; }
+
+
+
+    .result-card {
+
+        background: rgba(255, 255, 255, 0.02);
+
+        border: 1px solid var(--border);
+
+        border-left: 4px solid var(--accent);
+
+        border-radius: 14px;
+
+        padding: 16px; margin-top: 12px;
+
+    }
+
+
+
+    .res-range {
+
+        background: rgba(96, 165, 250, 0.05);
+
+        padding: 12px; border-radius: 10px;
+
+        border: 1px dashed rgba(96, 165, 250, 0.3);
+
+        text-align: center; margin-top: 10px;
+
+    }
+
+    .res-range span { font-family: monospace; font-weight: 800; color: var(--text); font-size: clamp(14px, 4vw, 16px); }
+
+
+
+    .target-name { display: block; font-size: 14px; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+
+    .target-link-anchor { 
+
+        font-size: 11px; color: var(--accent); text-decoration: underline;
+
+        font-family: monospace; cursor: pointer; background: none; border: none; padding: 0; text-align: left;
+
+        word-break: break-all; /* Evita che link lunghi spacchino il layout */
+
+    }
+
+
+
+    /* STYLE PAYPAL */
+
+    .paypal-footer {
+
+        text-align: center;
+
+        margin-top: 40px;
+
+        padding: 30px 20px;
+
+        border-top: 1px solid var(--border);
+
+    }
+
+    .paypal-link {
+
+        color: #60a5fa;
+
+        text-decoration: none;
+
+        font-weight: bold;
+
+        font-size: 14px;
+
+        background: rgba(0, 112, 186, 0.15);
+
+        padding: 10px 20px;
+
+        border-radius: 50px;
+
+        border: 1px solid rgba(0, 112, 186, 0.4);
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 8px;
+
+        transition: 0.3s;
+
+    }
+
+    .paypal-link:hover { background: rgba(0, 112, 186, 0.3); transform: translateY(-2px); }
+
+
+
+    /* --- STILE ASSISTENTE (COPIATO DA INDEX (1).HTML) --- */
+
+    #ai-assistant-container {
+
+        position: fixed;
+
+        bottom: 20px;
+
+        right: 20px;
+
+        z-index: 9999;
+
+    }
+
+
+
+    #ai-button {
+
+        width: 70px;
+
+        height: 70px;
+
+        border-radius: 50%;
+
+        background: var(--accent);
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        cursor: pointer;
+
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+
+        overflow: hidden;
+
+        border: 2px solid var(--accent);
+
+    }
+
+
+
+    #ai-button img {
+
+        width: 100%;
+
+        height: 100%;
+
+        object-fit: cover;
+
+    }
+
+
+
+    #ai-window {
+
+        display: none;
+
+        position: absolute;
+
+        bottom: 85px;
+
+        right: 0;
+
+        width: 85vw;
+
+        max-width: 320px;
+
+        background: var(--card);
+
+        border: 1px solid var(--accent);
+
+        border-radius: 20px;
+
+        padding: 15px;
+
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+
+        backdrop-filter: blur(10px);
+
+    }
+
+
+
+    .ai-header {
+
+        color: var(--accent);
+
+        font-weight: bold;
+
+        margin-bottom: 10px;
+
+        display: flex;
+
+        justify-content: space-between;
+
+        border-bottom: 1px solid var(--border);
+
+        padding-bottom: 5px;
+
+    }
+
+
+
+    #ai-content {
+
+        max-height: 250px;
+
+        overflow-y: auto;
+
+        margin-bottom: 10px;
+
+        font-size: 13px;
+
+        color: var(--text);
+
+    }
+
+
+
+    .ai-input-area {
+
+        display: flex;
+
+        gap: 5px;
+
+        border-top: 1px solid var(--border);
+
+        padding-top: 10px;
+
+    }
+
+
+
+    #ai-input {
+
+        flex: 1;
+
+        background: #000;
+
+        border: 1px solid var(--border);
+
+        color: #fff;
+
+        border-radius: 5px;
+
+        padding: 8px;
+
+        font-size: 12px;
+
+    }
+
+
+
+    #ai-send-btn {
+
+        background: var(--accent);
+
+        border: none;
+
+        border-radius: 5px;
+
+        padding: 5px 15px;
+
+        cursor: pointer;
+
+        font-weight: bold;
+
+        color: #000;
+
+    }
+
+ </style>
+
 </head>
 
 <body>
 
-    <div class="nav-header">
-        <a href="https://re-panza.github.io/lk_tool/index.html" class="btn-home">🏠 Torna alla Home</a>
+
+
+  <div style="max-width: 980px; margin: 0 auto; padding: 10px 5px;">
+
+      <a href="https://re-panza.github.io/lk_tool/" style="text-decoration:none; color:var(--accent); font-weight:bold; display:inline-flex; align-items:center; gap:8px;">
+
+          <span style="font-size:20px;">🏠</span> Torna alla Home
+
+      </a>
+
+  </div>
+
+
+
+<div class="wrap">
+
+  <header>
+
+    <div>
+
+      <h1>⚔️ L&K: Calcola Partenze</h1>
+
+      
+
     </div>
 
-    <div class="page-title">
-        <h2>🔍 Ricerca Target</h2>
-        <div class="search-options">
-            <div class="search-option">👤 <span>Giocatori</span></div>
-            <div class="search-option">🛡️ <span>Alleanze</span></div>
-            <div class="search-option">💤 <span>Inattivi</span></div>
+    <div class="badge" id="liveClock" style="font-family: monospace;">--:--:--</div>
+
+  </header>
+
+
+
+  <div class="card">
+
+    <div class="banner-group">
+
+        <div class="direct-input-group">
+
+            <label>📅 Data Impatto</label>
+
+            <input type="date" id="common-date" class="native-input">
+
         </div>
+
+        <div class="direct-input-group">
+
+            <label>🕒 Ora Impatto</label>
+
+            <input type="time" id="common-time" class="native-input">
+
+        </div>
+
     </div>
 
-    <div class="container">
-        <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
-        <textarea id="inputText" placeholder="Incolla qui il link giocatore o link alleanza (per vedere tutti i taarget) o link...&#10;Esempio: l+k://alliance?11&337 anche più d'uno"></textarea>
-        <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
-        <div id="export-buttons" class="btn-export-box">
-            <button class="btn-exp btn-sel" onclick="exportReport(true)">📥SCARICA <br> SELEZIONATI</button>
-            <button class="btn-exp btn-all" onclick="exportReport(false)">📥  SCARICA <br> TUTTI</button>
-        </div>
-        <div id="risultati"></div>
     </div>
 
-    <footer class="paypal-footer">
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Ti piace questo strumento?</p>
-        <a href="https://www.paypal.me/AmedeoPanza" target="_blank" class="paypal-link">☕ Offrimi un caffè su PayPal</a>
-    </footer>
 
-    <div id="ai-assistant-container">
-        <div id="ai-window">
-            <div class="ai-header">
-                <span>👑 Assistente Re Panza</span>
-                <span onclick="toggleAI()" style="cursor:pointer">×</span>
-            </div>
-            <div id="ai-content">
-                <p>Ciao! Sono Re Panza. Chiedimi pure consiglio per la tua conquista.</p>
-            </div>
-            <div class="ai-input-area">
-                <input type="text" id="ai-input" placeholder="Scrivi al Re...">
-                <button id="ai-send-btn" onclick="chiediAlRe()">Invia</button>
-            </div>
-        </div>
-        <div id="ai-button" onclick="toggleAI()">
-            <img src="https://re-panza.github.io/lk_tool/re-panza-ai.png" alt="Re Panza AI">
-        </div>
-    </div>
 
-    <script src="https://re-panza.github.io/lk_tool/common.js"></script>
-    <script src="https://re-panza.github.io/re-panza-core/re_panza_brain.js"></script>
+  <div class="card">
 
-    <script>
-        let dbCastelli = [];
-        let dbNomiMap = {}; 
-        let mondoCaricatoAttualmente = "";
+    <h2>🔗 Incolla Testo</h2>
 
-        function getTipoHabitat(t) {
-            const tipo = String(t).trim();
-            if (tipo === "0") return "Castello";
-            if (tipo === "2") return "Fortezza";
-            if (tipo === "4") return "Città";
-            return isNaN(tipo) ? tipo : "Metropoli";
+    <textarea id="links-textarea" placeholder="Incolla report o link..."></textarea>
+
+    <button class="btn-secondary" onclick="generateList()">Analizza Testo</button>
+
+  </div>
+
+
+
+  <div id="list-section" style="display:none;" class="card">
+
+    <h2 id="list-count">Bersagli</h2>
+
+    <div id="attack-list-container"></div>
+
+    <button style="margin-top:10px;" onclick="calculateAll()">Calcola Orari</button>
+
+  </div>
+
+
+
+  <div id="results-container"></div>
+
+  <div id="export-section" style="display:none;">
+
+      <button class="btn-export" onclick="exportToTxt()">📥 Scarica Risultati (TXT)</button>
+
+  </div>
+
+</div>
+
+
+
+<script>
+
+    /* ... (Il resto del codice JavaScript rimane identico all'originale) ... */
+
+    let currentResults = [];
+
+    setInterval(() => { document.getElementById('liveClock').textContent = new Date().toLocaleTimeString('it-IT'); }, 1000);
+
+    function updateDisplay(type) {
+
+        const val = document.getElementById('common-' + type).value;
+
+        if(val) {
+
+            const txt = type === 'date' ? new Date(val).toLocaleDateString('it-IT') : val;
+
+            document.getElementById(type + 'Display').textContent = (type==='date'?'📅 ':'🕒 ') + txt;
+
         }
 
-        async function cerca() {
-            const input = document.getElementById('inputText').value;
-            const resDiv = document.getElementById('risultati');
-            const exportDiv = document.getElementById('export-buttons');
-            const errorBanner = document.getElementById('errorBanner');
+    }
 
-            resDiv.innerHTML = "";
-            errorBanner.style.display = "none";
-            exportDiv.style.display = "none";
+    function generateList() {
 
-            const playerPattern = /(?:Nome\s*giocatore|Giocatore)\s*:\s*([^\n\r]+)\s+(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
-            const namedMatches = [...input.matchAll(playerPattern)];
-            const simplePlayerPattern = /(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
-            const simplePlayerMatches = [...input.matchAll(simplePlayerPattern)];
-            const alliancePattern = /(?:l\+k:\/\/|https?:\/\/.*?)alliance\?(\d+)&(\d+)/gi;
-            const allianceMatches = [...input.matchAll(alliancePattern)];
+        const rawText = document.getElementById('links-textarea').value;
 
-            if (simplePlayerMatches.length === 0 && allianceMatches.length === 0) {
-                errorBanner.innerHTML = "⚠️ Incolla un link giocatore o alleanza valido.";
-                errorBanner.style.display = "block";
-                return;
-            }
+        const container = document.getElementById('attack-list-container');
 
-            const mapIdToNameInput = {};
-            const targetPlayerIds = new Set();
-            let mondoScelto = null;
+        container.innerHTML = '';
 
-            namedMatches.forEach(m => {
-                mapIdToNameInput[parseInt(m[2])] = m[1].trim();
-            });
+        const linkRegex = /l\+k:\/\/coordinates?\?[0-9,]+&[0-9]+/g;
 
-            simplePlayerMatches.forEach(m => {
-                const id = parseInt(m[1]);
-                targetPlayerIds.add(id);
-                if (!mondoScelto) mondoScelto = m[2];
-            });
+        const lines = rawText.split('\n');
 
-            const targetAllianceIds = new Set();
-            allianceMatches.forEach(m => {
-                targetAllianceIds.add(parseInt(m[1]));
-                if (!mondoScelto) mondoScelto = m[2]; 
-            });
+        let count = 0;
 
-            let urlDBCastelli, urlDBNomi;
-            const mondoStr = String(mondoScelto).trim();
+        let match;
 
-            if (mondoStr === "327") {
-                urlDBCastelli = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json";
-                urlDBNomi = "https://raw.githubusercontent.com/Re-Panza/scanner_classifica327/main/database_classificamondo327.json";
-            } else {
-                urlDBCastelli = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${mondoStr}.json`;
-                urlDBNomi = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_classificamondo${mondoStr}.json`;
-            }
+        const matches = [];
 
-            if (mondoCaricatoAttualmente !== mondoStr) {
-                try {
-                    const promises = [fetch(urlDBCastelli + "?v=" + Date.now()).then(r => {
-                        if (!r.ok) throw new Error("File castelli non trovato.");
-                        return r.json();
-                    })];
-                    
-                    if (urlDBNomi) {
-                        promises.push(fetch(urlDBNomi + "?v=" + Date.now()).then(r => r.ok ? r.json() : []).catch(() => []));
-                    } else {
-                        promises.push(Promise.resolve([]));
-                    }
+        while ((match = linkRegex.exec(rawText)) !== null) {
 
-                    const [datiCastelli, datiNomi] = await Promise.all(promises);
-                    dbCastelli = datiCastelli;
-                    dbNomiMap = {};
-                    if (Array.isArray(datiNomi)) {
-                        datiNomi.forEach(p => {
-                            const n = p.nick || p.name || p.n;
-                            const pid = p.id || p.p;
-                            if (pid && n) dbNomiMap[parseInt(pid)] = n;
-                        });
-                    }
-                    mondoCaricatoAttualmente = mondoStr;
-                } catch (err) {
-                    console.error(err);
-                    alert(`Impossibile caricare i database per il Mondo ${mondoStr}.`);
-                    return;
+            const lineIndex = rawText.substring(0, match.index).split('\n').length - 1;
+
+            matches.push({ link: match[0], lineIndex: lineIndex });
+
+        }
+
+        matches.forEach((m, i) => {
+
+            count++;
+
+            let name = "";
+
+            const currentLine = lines[m.lineIndex] || "";
+
+            let nameBeside = currentLine.replace(m.link, '').replace(/\u00a0/g, ' ').trim();
+
+            if (nameBeside.length > 3) {
+
+                name = nameBeside;
+
+            } else if (m.lineIndex > 0) {
+
+                for (let j = m.lineIndex - 1; j >= 0; j--) {
+
+                    let candidate = lines[j].trim();
+
+                    if (candidate && !candidate.includes('l+k://')) { name = candidate; break; }
+
+                    if (candidate.includes('l+k://')) break;
+
                 }
+
             }
 
-            let castelliTrovati = dbCastelli.filter(c => targetPlayerIds.has(c.p) || targetAllianceIds.has(c.a));
+            if (!name) name = `Target #${count}`;
 
-            if (castelliTrovati.length === 0) {
-                resDiv.innerHTML = `<p style="text-align:center; color:#93a4c7; margin-top:20px;">Nessun castello trovato.</p>`;
-                return;
-            }
+            const div = document.createElement('div');
 
-            const gruppiPerGiocatore = {};
-            castelliTrovati.forEach(c => {
-                if (!gruppiPerGiocatore[c.p]) gruppiPerGiocatore[c.p] = [];
-                gruppiPerGiocatore[c.p].push(c);
-            });
+            div.className = 'attack-row';
 
-            const listaGiocatori = Object.keys(gruppiPerGiocatore).map(pid => {
-                const idNumerico = parseInt(pid);
-                const castelli = gruppiPerGiocatore[pid];
-                castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
-                const totalePunti = castelli.reduce((acc, c) => acc + (c.pt || 0), 0);
-                const nomeGiocatore = mapIdToNameInput[idNumerico] || dbNomiMap[idNumerico] || "ID: " + pid;
+            div.innerHTML = `<div><span class="target-name">${name}</span><button class="target-link-anchor" onclick="window.location.href='${m.link}'">${m.link}</button></div><div class="time-inputs"><input type="number" class="h-in" placeholder="Ore"><input type="number" class="m-in" placeholder="Min"><input type="hidden" class="link-val" value="${m.link}"><input type="hidden" class="name-val" value="${name}"></div>`;
 
-                return { id: idNumerico, nome: nomeGiocatore, castelli: castelli, puntiTotali: totalePunti };
-            });
+            container.appendChild(div);
 
-            listaGiocatori.sort((a, b) => b.puntiTotali - a.puntiTotali);
+        });
 
-            listaGiocatori.forEach(giocatore => {
-                const isInactive = giocatore.castelli[0].i === true;
-                let nomeDisplay = `${giocatore.nome} <span style="font-size:12px; color:#93a4c7">(${giocatore.puntiTotali.toLocaleString()} pt)</span>`;
-                nomeDisplay += isInactive ? ` <span style="color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">⚠️ INATTIVO</span>` 
-                                          : ` <span style="color:#34d399; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">✅ ATTIVO</span>`;
+        if(count === 0) { alert("Nessun link rilevato!"); return; }
 
-                renderPlayerGroup(nomeDisplay, giocatore.castelli, resDiv, mondoStr);
-            });
+        document.getElementById('list-section').style.display = 'block';
 
-            if (listaGiocatori.length > 0) exportDiv.style.display = "flex";
+    }
+
+    function calculateAll() {
+
+        const dateVal = document.getElementById('common-date').value;
+
+        const timeVal = document.getElementById('common-time').value;
+
+        const resultsDiv = document.getElementById('results-container');
+
+        const rows = document.querySelectorAll('.attack-row');
+
+        if (!dateVal || !timeVal) { alert("Inserisci Data e Ora!"); return; }
+
+        resultsDiv.innerHTML = '<h2 style="font-size:16px; margin:20px 0 10px 0;">📋 Orari di Partenza</h2>';
+
+        const impactDate = new Date(`${dateVal}T${timeVal}:00`);
+
+        currentResults = [];
+
+        rows.forEach((row) => {
+
+            const h = parseInt(row.querySelector('.h-in').value) || 0;
+
+            const m = parseInt(row.querySelector('.m-in').value) || 0;
+
+            const link = row.querySelector('.link-val').value;
+
+            const name = row.querySelector('.name-val').value;
+
+            const totalSec = (h * 3600) + (m * 60);
+
+            if (totalSec === 0) return;
+
+            let maxDelay = Math.min(totalSec * 0.05, 7200);
+
+            const depLate = new Date(impactDate.getTime() - (totalSec * 1000));
+
+            const depEarly = new Date(impactDate.getTime() - ((totalSec + maxDelay) * 1000));
+
+            const timeA = formatTime(depEarly);
+
+            const timeB = formatTime(depLate);
+
+            currentResults.push({ name, link, range: `Parti tra le ${timeA} e le ${timeB}` });
+
+            resultsDiv.innerHTML += `<div class="result-card"><div class="target-name">${name}</div><button class="target-link-anchor" onclick="window.location.href='${link}'" style="margin-bottom:8px;">${link}</button><div class="res-range"><span>Parti tra le ${timeA} e le ${timeB}</span></div></div>`;
+
+        });
+
+        if(currentResults.length > 0) document.getElementById('export-section').style.display = 'block';
+
+    }
+
+    function formatTime(date) {
+
+        const hh = String(date.getHours()).padStart(2, '0');
+
+        const mm = String(date.getMinutes()).padStart(2, '0');
+
+        const ss = String(date.getSeconds()).padStart(2, '0');
+
+        const dd = String(date.getDate()).padStart(2, '0');
+
+        const mon = String(date.getMonth() + 1).padStart(2, '0');
+
+        return `${hh}:${mm}:${ss} del ${dd}/${mon}`;
+
+    }
+
+   function exportToTxt() {
+
+        let textContent = "⚔️ TABELLA DI MARCIA ATTACCO ⚔️\n-------------------------------------------\n\n";
+
+        currentResults.forEach((res, i) => {
+
+            textContent += `TARGET #${i+1}\nNome: ${res.name}\nLink: ${res.link}\nORARIO: ${res.range}\n-------------------------------------------\n`;
+
+        });
+
+        const blob = new Blob([textContent], { type: 'text/plain' });
+
+        const link = document.createElement('a');
+
+        link.href = URL.createObjectURL(blob);
+
+        link.download = 'piano_attacco_lk.txt';
+
+        link.click();
+
+    }
+
+</script>
+
+
+
+<script>
+
+  if ('serviceWorker' in navigator) {
+
+    // Usa la versione caricata automaticamente da version.js
+
+    navigator.serviceWorker.register('https://re-panza.github.io/lk_tool/sw.js?v=' + APP_VERSION);
+
+  }
+
+</script>
+
+
+
+  <footer class="paypal-footer">
+
+      <p style="font-size:12px; color:#93a4c7; margin-bottom:12px; font-family: sans-serif;">
+
+          Ti piace questo strumento?
+
+      </p>
+
+      <a href="https://paypal.me/Longo11" target="_blank" class="paypal-link">
+
+          ☕ Offrimi un caffè su PayPal
+
+      </a>
+
+  </footer>
+
+
+
+  <div id="ai-assistant-container">
+
+    <div id="ai-window">
+
+        <div class="ai-header">
+
+            <span>👑 Assistente Re Panza</span>
+
+            <span onclick="toggleAI()" style="cursor:pointer">×</span>
+
+        </div>
+
+        <div id="ai-content">
+
+            <p>Ciao! Sono Re Panza. Chiedimi pure consiglio per la tua conquista.</p>
+
+        </div>
+
+        <div class="ai-input-area">
+
+            <input type="text" id="ai-input" placeholder="Scrivi al Re...">
+
+            <button id="ai-send-btn" onclick="chiediAlRe()">Invia</button>
+
+        </div>
+
+    </div>
+
+    <div id="ai-button" onclick="toggleAI()">
+
+        <img src="https://re-panza.github.io/lk_tool/re-panza-ai.png" alt="Re Panza AI">
+
+    </div>
+
+  </div>
+
+
+
+  <script src="https://re-panza.github.io/re-panza-core/re_panza_brain.js"></script>
+
+
+
+  <script>
+
+    // FIX TASTO INVIO: Questo permette di inviare premendo "Enter"
+
+    document.addEventListener('keypress', function (e) {
+
+        const inputField = document.getElementById('ai-input');
+
+        // Se l'utente preme Invio mentre è nel campo di testo, clicca "Invia" per lui
+
+        if (e.key === 'Enter' && document.activeElement === inputField) {
+
+            chiediAlRe();
+
         }
 
-        function renderPlayerGroup(nome, castelli, container, mondo) {
-            const group = document.createElement('div');
-            group.className = 'player-group';
+    });
 
-            let itemsHtml = castelli.map((c, i) => {
-                const tipo = getTipoHabitat(c.t);
-                const link = `l+k://coordinates?${c.x},${c.y}&${mondo}`;
-                const punti = (c.pt || 0).toLocaleString();
-                const coordStr = `${c.x},${c.y}`;
+  </script>
 
-                return `
-                    <div class="castello-card">
-                        <input type="checkbox" class="hab-check" data-nome="${c.n}" data-tipo="${tipo}" data-punti="${punti}" data-link="${link}">
-                        <div style="flex-grow:1">
-                            <span class="castello-nome">${i + 1}. ${c.n || 'Senza Nome'}</span>
-                            <span class="castello-info"><b>${tipo}</b> • ${punti} pt</span>
-                            <a href="${link}" class="castello-link" onclick="event.preventDefault(); copyToClipboard('${coordStr}')">
-                                ${link} 
-                            </a>
-                        </div>
-                    </div>`;
-            }).join('');
 
-            group.innerHTML = `
-                <div class="player-header" onclick="this.classList.toggle('active'); const content = this.nextElementSibling; content.style.display = content.style.display === 'block' ? 'none' : 'block';">
-                    <span>👤 ${nome} (${castelli.length})</span><span>▼</span>
-                </div>
-                <div class="player-content" style="display:none">${itemsHtml}</div>
-            `;
-            container.appendChild(group);
-        }
 
-        function exportReport(soloSelezionati) {
-            const checkboxes = document.querySelectorAll('.hab-check');
-            let testo = "--- REPORT INTELLIGENCE L&K ---\n\n";
-            let count = 0;
-            checkboxes.forEach(cb => {
-                if (!soloSelezionati || cb.checked) {
-                    testo += `${cb.dataset.tipo}: ${cb.dataset.nome} (${cb.dataset.punti} pt)\nLink: ${cb.dataset.link}\n\n`;
-                    count++;
-                }
-            });
-            if (count === 0) return alert("Nessuna selezione!");
-            const blob = new Blob([testo], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `Report_Intelligence.txt`; a.click();
-        }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
-        }
-    </script>
 </body>
+
 </html>
+
+
