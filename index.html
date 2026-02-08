@@ -1,135 +1,732 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://re-panza.github.io/lk_tool/icona.png">
-    <title>Ricerca Giocatore</title>
+
+    <title>Ricerca Giocatore - L&K Tool</title>
+
     <script src="https://re-panza.github.io/lk_tool/version.js"></script>
-    <script>document.write(`<link rel="manifest" href="https://re-panza.github.io/lk_tool/manifest.json?v=${APP_VERSION}">`);</script>
+    <script>
+        const APP_VERSION = typeof APP_VERSION !== 'undefined' ? APP_VERSION : '1.0';
+        document.write(`<link rel="manifest" href="https://re-panza.github.io/lk_tool/manifest.json?v=${APP_VERSION}">`);
+    </script>
+
     <style>
-        :root { --bg:#0f172a; --card:#111c33; --muted:#93a4c7; --text:#e8eefc; --accent:#60a5fa; --border:rgba(255,255,255,.10); --success:#34d399; --danger:#ef4444; }
-        * { box-sizing:border-box; }
-        body { margin:0; font-family:system-ui,-apple-system,sans-serif; background:radial-gradient(1200px 600px at 20% 0%,rgba(96,165,250,.25),transparent 60%),radial-gradient(1000px 500px at 90% 10%,rgba(52,211,153,.18),transparent 55%),var(--bg); color:var(--text); padding:env(safe-area-inset-top,20px) 20px 40px 20px; user-select:none; }
-        .container { max-width:500px; margin:0 auto; background:rgba(17,28,51,.8); backdrop-filter:blur(12px); padding:32px 24px; border-radius:24px; border:1px solid var(--border); box-shadow:0 20px 50px rgba(0,0,0,.3); }
-        .nav-header { max-width:500px; margin:0 auto 20px auto; display:flex; }
-        .btn-home { text-decoration:none; color:var(--accent); font-weight:700; display:inline-flex; align-items:center; gap:8px; font-size:16px; }
-        .page-title h2 { font-size:24px; font-weight:800; color:#fff; margin:0 0 10px 0; }
-        textarea { width:100%; height:140px; padding:16px; margin-bottom:20px; border-radius:16px; border:1px solid var(--border); background:rgba(255,255,255,.05); color:var(--text); outline:none; font-size:16px; resize:none; user-select:text; }
-        textarea:focus { border-color:var(--accent); }
-        .btn-cerca { width:100%; padding:16px; background:var(--accent); border:none; font-weight:800; font-size:17px; border-radius:16px; cursor:pointer; color:#0f172a; margin-bottom:12px; }
-        .btn-export-box { display:none; gap:12px; margin-top:10px; }
-        .btn-exp { flex:1; padding:14px; border-radius:14px; font-weight:700; cursor:pointer; font-size:14px; border:1px solid var(--border); }
-        .btn-sel { background:rgba(52,211,153,.1); color:var(--success); border-color:rgba(52,211,153,.3); }
-        .btn-all { background:rgba(255,255,255,.05); color:var(--muted); }
-        #risultati { margin-top:24px; }
-        .player-group { margin-bottom:16px; border:1px solid var(--border); border-radius:18px; overflow:hidden; background:rgba(255,255,255,.02); }
-        .player-header { padding:18px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:16px; color:var(--accent); }
-        .player-content { display:none; padding:12px; background:rgba(0,0,0,0.2); border-top:1px solid var(--border); }
-        .castello-card { background:rgba(255,255,255,.03); padding:14px; margin-bottom:10px; border-radius:14px; border:1px solid var(--border); display:flex; align-items:center; gap:14px; }
-        .hab-check { width:20px; height:20px; cursor:pointer; accent-color:var(--accent); }
-        .castello-nome { font-weight:700; color:#fff; display:block; font-size:16px; }
-        .castello-link { color:var(--accent); text-decoration:none; font-family:monospace; font-size:12px; display:block; margin-top:8px; opacity:0.6; cursor:pointer; }
-        
-        .paypal-footer { text-align:center; margin-top:60px; padding:30px 20px; border-top:1px solid rgba(255,255,255,0.1); }
-        .paypal-link { text-decoration:none; font-weight:700; font-size:14px; display:inline-flex; align-items:center; gap:10px; transition:all 0.3s ease; color:#fff !important; background:#0070ba; padding:12px 28px; border-radius:50px; box-shadow:0 4px 15px rgba(0,112,186,0.3); border:none; }
-        .paypal-link:hover { background:#005ea6; transform:translateY(-2px); }
-        
-        #ai-assistant-container { position:fixed; bottom:20px; right:20px; z-index:9999; }
-        #ai-button { width:70px; height:70px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.4); border:2px solid var(--accent); overflow:hidden; }
-        #ai-button img { width:100%; height:100%; object-fit:cover; }
-        #ai-window { display:none; position:absolute; bottom:85px; right:0; width:85vw; max-width:320px; background:var(--card); border:1px solid var(--accent); border-radius:20px; padding:15px; box-shadow:0 10px 30px rgba(0,0,0,0.6); }
-        .ai-header { color:var(--accent); font-weight:bold; margin-bottom:10px; display:flex; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:5px; }
-        .ai-input-area { display:flex; gap:5px; border-top:1px solid var(--border); padding-top:10px; }
-        #ai-input { flex:1; background:#000; border:1px solid var(--border); color:#fff; border-radius:5px; padding:8px; font-size:12px; }
-        #ai-send-btn { background:var(--accent); border:none; border-radius:5px; padding:5px 15px; cursor:pointer; font-weight:bold; color:#000; }
+        :root {
+            --bg: #0f172a;
+            --card: #111c33;
+            --muted: #93a4c7;
+            --text: #e8eefc;
+            --accent: #60a5fa;
+            --border: rgba(255, 255, 255, .10);
+            --success: #34d399;
+            --danger: #ef4444;
+            --dangerBg: rgba(239, 68, 68, .12);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(1200px 600px at 20% 0%, rgba(96, 165, 250, .25), transparent 60%),
+                radial-gradient(1000px 500px at 90% 10%, rgba(52, 211, 153, .18), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            padding: env(safe-area-inset-top, 20px) 20px 40px 20px;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(17, 28, 51, .80);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 32px 24px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+        }
+
+        .nav-header {
+            max-width: 500px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .btn-home {
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        .page-title {
+            max-width: 500px;
+            margin: 0 auto 24px auto;
+            text-align: left; /* Allineamento a sinistra */
+        }
+
+        .page-title h2 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 15px;
+            color: var(--muted);
+            padding-left: 4px;
+        }
+
+        .search-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-option span {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        /* ISTRUZIONI STILE */
+        .instructions {
+            text-align: center;
+            font-size: 14px;
+            color: #e8eefc;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+
+        textarea {
+            width: 100%;
+            height: 140px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .05);
+            color: var(--text);
+            outline: none;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
+            -webkit-user-select: text;
+            user-select: text;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            border-color: var(--accent);
+        }
+
+        #errorBanner {
+            display: none;
+            margin-bottom: 20px;
+            border: 1px solid rgba(239, 68, 68, .4);
+            background: var(--dangerBg);
+            color: #ffcfcf;
+            border-radius: 16px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .btn-cerca {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            border: none;
+            font-weight: 800;
+            font-size: 17px;
+            border-radius: 16px;
+            cursor: pointer;
+            color: #0f172a;
+            margin-bottom: 12px;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn-cerca:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .btn-export-box {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .btn-exp {
+            flex: 1;
+            padding: 14px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .btn-sel {
+            background: rgba(52, 211, 153, 0.1);
+            color: var(--success);
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+        .btn-all {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+        }
+
+        /* Stile Risultati */
+        #risultati {
+            margin-top: 24px;
+        }
+
+        .player-group {
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, .02);
+        }
+
+        .player-header {
+            padding: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent);
+        }
+
+        .player-content {
+            display: none;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--border);
+        }
+
+        .player-header.active+.player-content {
+            display: block;
+        }
+
+        .castello-card {
+            background: rgba(255, 255, 255, .03);
+            padding: 14px;
+            margin-bottom: 10px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .hab-check {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .castello-nome {
+            font-weight: 700;
+            color: #fff;
+            display: block;
+            font-size: 16px;
+        }
+
+        .castello-info {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .castello-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-family: monospace;
+            font-size: 12px;
+            display: block;
+            margin-top: 8px;
+            opacity: 0.6;
+            cursor: pointer;
+        }
+
+        /* --- STILE FOOTER & PAYPAL UNIFORMATO --- */
+        .paypal-footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 30px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .paypal-link {
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            color: #fff !important;
+            background: #0070ba;
+            padding: 12px 28px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
+            border: none;
+        }
+
+        .paypal-link:hover {
+            background: #005ea6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 112, 186, 0.5);
+        }
+
+        /* --- STILE ASSISTENTE COPIATO --- */
+        #ai-assistant-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        #ai-button {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            border: 2px solid var(--accent);
+        }
+
+        #ai-button img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #ai-window {
+            display: none;
+            position: absolute;
+            bottom: 85px;
+            right: 0;
+            width: 85vw;
+            max-width: 320px;
+            background: var(--card);
+            border: 1px solid var(--accent);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .ai-header {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+        }
+
+        #ai-content {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .ai-input-area {
+            display: flex;
+            gap: 5px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+        }
+
+        #ai-input {
+            flex: 1;
+            background: #000;
+            border: 1px solid var(--border);
+            color: #fff;
+            border-radius: 5px;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        #ai-send-btn {
+            background: var(--accent);
+            border: none;
+            border-radius: 5px;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #000;
+        }
     </style>
 </head>
+
 <body>
-    <div class="nav-header"><a href="https://re-panza.github.io/lk_tool/index.html" class="btn-home">🏠 Home</a></div>
-    <div class="page-title"><h2>🔍 Ricerca</h2></div>
+
+    <div class="nav-header">
+        <a href="https://re-panza.github.io/lk_tool/index.html" class="btn-home">🏠 Torna alla Home</a>
+    </div>
+
+    <div class="page-title">
+        <h2>🔍 Ricerca Target</h2>
+        <div class="search-options">
+            <div class="search-option">👤 <span>Giocatori</span></div>
+            <div class="search-option">🛡️ <span>Alleanze</span></div>
+            <div class="search-option">💤 <span>Inattivi</span></div>
+        </div>
+    </div>
 
     <div class="container">
-        <textarea id="inputText" placeholder="Incolla link..."></textarea>
-        <button class="btn-cerca" onclick="cerca()">CERCA</button>
+        
+        <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
+
+        <textarea id="inputText"
+            placeholder="Incolla qui il link profilo o link alleanza...&#10; ti darò tutti i possedimenti e dirò se sono attivi o meno. Seleziona ciò che ti serve e scarica la lista da copiare"></textarea>
+
+        <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
+
         <div id="export-buttons" class="btn-export-box">
-            <button class="btn-exp btn-sel" onclick="exportReport(true)">SELEZIONE</button>
-            <button class="btn-exp btn-all" onclick="exportReport(false)">TUTTI</button>
+            <button class="btn-exp btn-sel" onclick="exportReport(true)">📥 SCARICA SELEZIONATI</button>
+            <button class="btn-exp btn-all" onclick="exportReport(false)">📥 SCARICA TUTTI</button>
         </div>
+
         <div id="risultati"></div>
     </div>
 
-    <footer class="paypal-footer"><a href="https://paypal.me/Longo11" target="_blank" class="paypal-link">☕ PayPal</a></footer>
+    <footer class="paypal-footer">
+        <p style="font-size:12px; color:#93a4c7; margin-bottom:8px; font-family: sans-serif;">
+            Ti piace questo strumento?
+        </p>
+        <a href="https://paypal.me/Longo11" target="_blank" class="paypal-link">
+            ☕ Offrimi un caffè su PayPal
+        </a>
+    </footer>
 
-    <div id="ai-assistant-container"><div id="ai-window"><div class="ai-header"><span>👑 Re Panza</span><span onclick="toggleAI()" style="cursor:pointer">×</span></div><div id="ai-content"><p>Ciao!</p></div><div class="ai-input-area"><input type="text" id="ai-input" placeholder="..."><button id="ai-send-btn" onclick="chiediAlRe()">Invia</button></div></div><div id="ai-button" onclick="toggleAI()"><img src="https://re-panza.github.io/lk_tool/re-panza-ai.png" alt="AI"></div></div>
+    <div id="ai-assistant-container">
+        <div id="ai-window">
+            <div class="ai-header">
+                <span>👑 Assistente Re Panza</span>
+                <span onclick="toggleAI()" style="cursor:pointer">×</span>
+            </div>
+            <div id="ai-content">
+                <p>Ciao! Sono Re Panza. Chiedimi pure consiglio per la tua conquista.</p>
+            </div>
+            <div class="ai-input-area">
+                <input type="text" id="ai-input" placeholder="Scrivi al Re...">
+                <button id="ai-send-btn" onclick="chiediAlRe()">Invia</button>
+            </div>
+        </div>
+        <div id="ai-button" onclick="toggleAI()">
+            <img src="https://re-panza.github.io/lk_tool/re-panza-ai.png" alt="Re Panza AI">
+        </div>
+    </div>
 
     <script src="https://re-panza.github.io/lk_tool/common.js"></script>
     <script src="https://re-panza.github.io/re-panza-core/re_panza_brain.js"></script>
 
     <script>
-        let dbCastelli = [], dbNomiMap = {}, mondoCaricatoAttualmente = "";
+        let dbCastelli = [];
+        let dbNomiMap = {}; // Mappa ID -> Nome
+        let mondoCaricatoAttualmente = "";
+
+        function getTipoHabitat(t) {
+            const tipo = String(t).trim();
+            if (tipo === "0") return "Castello";
+            if (tipo === "2") return "Fortezza";
+            if (tipo === "4") return "Città";
+            return isNaN(tipo) ? tipo : "Metropoli";
+        }
 
         async function cerca() {
             const input = document.getElementById('inputText').value;
-            const resDiv = document.getElementById('risultati'), exportDiv = document.getElementById('export-buttons');
-            resDiv.innerHTML = ""; exportDiv.style.display = "none";
+            const resDiv = document.getElementById('risultati');
+            const exportDiv = document.getElementById('export-buttons');
+            const errorBanner = document.getElementById('errorBanner');
 
-            const matches = [...input.matchAll(/(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi)];
-            const allyMatches = [...input.matchAll(/(?:l\+k:\/\/|https?:\/\/.*?)alliance\?(\d+)&(\d+)/gi)];
+            resDiv.innerHTML = "";
+            errorBanner.style.display = "none";
+            exportDiv.style.display = "none";
+
+            // 1. Parsing Input
+            const playerPattern = /(?:Nome\s*giocatore|Giocatore)\s*:\s*([^\n\r]+)\s+(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
+            const namedMatches = [...input.matchAll(playerPattern)];
             
-            if (!matches.length && !allyMatches.length) return alert("Link non valido!");
+            // Regex universale per player link
+            const simplePlayerPattern = /(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
+            const simplePlayerMatches = [...input.matchAll(simplePlayerPattern)];
 
-            const pIds = new Set(), aIds = new Set();
-            let w = matches[0]?.[2] || allyMatches[0]?.[2];
-            matches.forEach(m => pIds.add(parseInt(m[1])));
-            allyMatches.forEach(m => aIds.add(parseInt(m[1])));
+            // Regex Alleanze
+            const alliancePattern = /(?:l\+k:\/\/|https?:\/\/.*?)alliance\?(\d+)&(\d+)/gi;
+            const allianceMatches = [...input.matchAll(alliancePattern)];
 
-            if (mondoCaricatoAttualmente !== w) {
-                const data = await LK_API.fetchWorldData(w);
-                if(!data) return;
-                dbCastelli = data.db; dbNomiMap = data.names;
-                mondoCaricatoAttualmente = w;
+            if (simplePlayerMatches.length === 0 && allianceMatches.length === 0) {
+                errorBanner.innerHTML = "⚠️ Incolla un link giocatore o alleanza valido.";
+                errorBanner.style.display = "block";
+                return;
             }
 
-            let found = dbCastelli.filter(c => pIds.has(c.p) || aIds.has(c.a));
-            if (!found.length) return resDiv.innerHTML = "<p>Nessun castello trovato.</p>";
+            // Mappatura ID -> Nome (da input utente)
+            const mapIdToNameInput = {};
+            const targetPlayerIds = new Set();
+            let mondoScelto = null;
 
-            const groups = {};
-            found.forEach(c => { if(!groups[c.p]) groups[c.p]=[]; groups[c.p].push(c); });
-
-            Object.keys(groups).forEach(pid => {
-                const castelli = groups[pid].sort((a,b) => b.pt - a.pt);
-                const pts = castelli.reduce((a,b)=>a+b.pt,0);
-                const nome = dbNomiMap[pid] || "ID "+pid;
-                const status = castelli[0].i ? "⚠️ INATTIVO" : "✅ ATTIVO";
-                
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'player-group';
-                let html = castelli.map((c, i) => {
-                    let type = c.t==0?"Castello":c.t==2?"Fortezza":c.t==4?"Città":"Metro";
-                    let link = `l+k://coordinates?${c.x},${c.y}&${w}`;
-                    return `<div class="castello-card">
-                        <input type="checkbox" class="hab-check" data-link="${link}" data-info="${type} ${c.n}">
-                        <div style="flex-grow:1"><span class="castello-nome">${i+1}. ${c.n}</span><span class="castello-info">${type} • ${c.pt} pt</span><a href="${link}" class="castello-link">${link}</a></div>
-                    </div>`;
-                }).join('');
-
-                groupDiv.innerHTML = `<div class="player-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display=='block'?'none':'block'"><span>👤 ${nome} (${pts} pt) ${status}</span><span>▼</span></div><div class="player-content">${html}</div>`;
-                resDiv.appendChild(groupDiv);
+            // Priorità ai match con nome esplicito
+            namedMatches.forEach(m => {
+                const nome = m[1].trim();
+                const id = parseInt(m[2]);
+                const mondo = m[3];
+                mapIdToNameInput[id] = nome;
             });
-            exportDiv.style.display = "flex";
+
+            // Aggiungi tutti i player ID trovati
+            simplePlayerMatches.forEach(m => {
+                const id = parseInt(m[1]);
+                const mondo = m[2];
+                targetPlayerIds.add(id);
+                if (!mondoScelto) mondoScelto = mondo;
+            });
+
+            const targetAllianceIds = new Set();
+            allianceMatches.forEach(m => {
+                const id = parseInt(m[1]);
+                const mondo = m[2];
+                targetAllianceIds.add(id);
+                if (!mondoScelto) mondoScelto = mondo; // Se non c'era player, usa mondo ally
+            });
+
+            // 2. Configurazione Database (URL CORRETTI CON RAW)
+            let urlDBCastelli;
+            let urlDBNomi = null;
+            
+            // Forziamo la conversione in stringa per evitare errori di tipo
+            const mondoStr = String(mondoScelto).trim();
+
+            if (mondoStr === "327") {
+                // *** CONFIGURAZIONE SPECIFICA PER MONDO 327 ***
+                // Castelli -> lk_scanner
+                urlDBCastelli = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json";
+                // Nomi -> scanner_classifica327
+                urlDBNomi = "https://raw.githubusercontent.com/Re-Panza/scanner_classifica327/main/database_classificamondo327.json";
+            } else {
+                // *** CONFIGURAZIONE STANDARD (lk_database) PER ALTRI MONDI (es. 237, 337) ***
+                urlDBCastelli = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${mondoStr}.json`;
+                urlDBNomi = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_classificamondo${mondoStr}.json`;
+            }
+
+            // 3. Caricamento Dati (Parallelo)
+            if (mondoCaricatoAttualmente !== mondoStr) {
+                try {
+                    const promises = [fetch(urlDBCastelli + "?v=" + Date.now()).then(r => {
+                        if (!r.ok) throw new Error("File castelli non trovato: " + r.status);
+                        return r.json();
+                    })];
+                    
+                    if (urlDBNomi) {
+                        promises.push(
+                            fetch(urlDBNomi + "?v=" + Date.now())
+                            .then(r => r.ok ? r.json() : []) 
+                            .catch(() => [])
+                        );
+                    } else {
+                        promises.push(Promise.resolve([]));
+                    }
+
+                    const [datiCastelli, datiNomi] = await Promise.all(promises);
+                    
+                    dbCastelli = datiCastelli;
+                    
+                    // Costruiamo la mappa ID -> Nome
+                    dbNomiMap = {};
+                    if (Array.isArray(datiNomi)) {
+                        datiNomi.forEach(p => {
+                            const n = p.nick || p.name || p.n;
+                            const pid = p.id || p.p;
+                            if (pid && n) {
+                                dbNomiMap[parseInt(pid)] = n;
+                            }
+                        });
+                    }
+
+                    mondoCaricatoAttualmente = mondoStr;
+                } catch (err) {
+                    console.error(err);
+                    alert(`Impossibile caricare i database per il Mondo ${mondoStr}.\nErrore: ${err.message}\nLink tentato: ${urlDBCastelli}`);
+                    return;
+                }
+            }
+
+            // 4. Filtraggio Castelli
+            let castelliTrovati = dbCastelli.filter(c => {
+                if (targetPlayerIds.has(c.p)) return true;
+                if (targetAllianceIds.has(c.a)) return true;
+                return false;
+            });
+
+            if (castelliTrovati.length === 0) {
+                resDiv.innerHTML = `<p style="text-align:center; color:#93a4c7; margin-top:20px;">Nessun castello trovato nel Mondo ${mondoStr}.</p>`;
+                return;
+            }
+
+            // Raggruppamento per Giocatore
+            const gruppiPerGiocatore = {};
+            castelliTrovati.forEach(c => {
+                if (!gruppiPerGiocatore[c.p]) {
+                    gruppiPerGiocatore[c.p] = [];
+                }
+                gruppiPerGiocatore[c.p].push(c);
+            });
+
+            // 5. ORDINAMENTO E RENDER
+            // Creiamo un array di oggetti per poterli ordinare
+            const listaGiocatori = Object.keys(gruppiPerGiocatore).map(pid => {
+                const idNumerico = parseInt(pid);
+                const castelli = gruppiPerGiocatore[pid];
+                
+                // Ordina castelli per punti decrescenti
+                castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
+                
+                // Calcola il punteggio totale del giocatore (somma dei castelli visibili)
+                const totalePunti = castelli.reduce((acc, c) => acc + (c.pt || 0), 0);
+                
+                // Risoluzione Nome
+                const nomeGiocatore = mapIdToNameInput[idNumerico] || dbNomiMap[idNumerico] || "ID: " + pid;
+
+                return {
+                    id: idNumerico,
+                    nome: nomeGiocatore,
+                    castelli: castelli,
+                    puntiTotali: totalePunti
+                };
+            });
+
+            // Ordina la lista giocatori dal più "grosso" al più piccolo
+            listaGiocatori.sort((a, b) => b.puntiTotali - a.puntiTotali);
+
+            // Renderizza a schermo
+            listaGiocatori.forEach(giocatore => {
+                const isInactive = giocatore.castelli[0].i === true;
+                let nomeDisplay = giocatore.nome;
+                
+                // Aggiungiamo i punti totali al nome per chiarezza
+                nomeDisplay += ` <span style="font-size:12px; color:#93a4c7">(${giocatore.puntiTotali.toLocaleString()} pt)</span>`;
+
+                if (isInactive) {
+                    nomeDisplay += ` <span style="color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">⚠️ INATTIVO</span>`;
+                } else {
+                    nomeDisplay += ` <span style="color:#34d399; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">✅ ATTIVO</span>`;
+                }
+
+                renderPlayerGroup(nomeDisplay, giocatore.castelli, resDiv, mondoStr);
+            });
+
+            if (listaGiocatori.length > 0) {
+                exportDiv.style.display = "flex";
+            }
         }
 
-        function exportReport(onlySel) {
-            let txt = "REPORT L&K\n\n";
-            document.querySelectorAll('.hab-check').forEach(cb => {
-                if(!onlySel || cb.checked) txt += `${cb.dataset.info}\n${cb.dataset.link}\n\n`;
+        function renderPlayerGroup(nome, castelli, container, mondo) {
+            const group = document.createElement('div');
+            group.className = 'player-group';
+
+            let itemsHtml = castelli.map((c, i) => {
+                const tipo = getTipoHabitat(c.t);
+                const link = `l+k://coordinates?${c.x},${c.y}&${mondo}`;
+                const punti = (c.pt || 0).toLocaleString();
+                const coordStr = `${c.x},${c.y}`;
+
+                return `
+                    <div class="castello-card">
+                        <input type="checkbox" class="hab-check" 
+                               data-nome="${c.n}" data-tipo="${tipo}" 
+                               data-punti="${punti}" data-link="${link}">
+                        <div style="flex-grow:1">
+                            <span class="castello-nome">
+                                ${i + 1}. ${c.n || 'Senza Nome'} 
+                            </span>
+                            <span class="castello-info"><b>${tipo}</b> • ${punti} pt</span>
+                            <a href="${link}" class="castello-link">
+                                ${link}
+                            </a>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            group.innerHTML = `
+                <div class="player-header" onclick="this.classList.toggle('active'); const content = this.nextElementSibling; content.style.display = content.style.display === 'block' ? 'none' : 'block';">
+                    <span>👤 ${nome} (${castelli.length})</span>
+                    <span>▼</span>
+                </div>
+                <div class="player-content" style="display:none">${itemsHtml}</div>
+            `;
+            container.appendChild(group);
+        }
+
+        function exportReport(soloSelezionati) {
+            const checkboxes = document.querySelectorAll('.hab-check');
+            let testo = "--- REPORT INTELLIGENCE L&K ---\n\n";
+            let count = 0;
+            checkboxes.forEach(cb => {
+                if (!soloSelezionati || cb.checked) {
+                    testo += `${cb.dataset.tipo}: ${cb.dataset.nome} (${cb.dataset.punti} pt)\nLink: ${cb.dataset.link}\n\n`;
+                    count++;
+                }
             });
+            if (count === 0) return alert("Nessuna selezione!");
+            const blob = new Blob([testo], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
-            a.download = "Report.txt"; a.click();
+            a.href = url;
+            a.download = `Report_Intelligence.txt`;
+            a.click();
+        }
+
+        // 2. Gestione Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js');
+            });
         }
     </script>
 </body>
