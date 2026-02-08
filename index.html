@@ -422,9 +422,8 @@
         
         <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
 
-
         <textarea id="inputText"
-            placeholder="Incolla qui il link profilo o link alleanza...&#10; ti darò tutti gli habitat e se è inattivo, seleziona i tuoi target potrai scaricarli in testo"></textarea>
+            placeholder="Incolla qui il link profilo o link alleanza...&#10; ti darò tutti i possedimenti e dirò se sono attivi o meno. Seleziona ciò che ti serve e scarica la lista da copiare"></textarea>
 
         <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
 
@@ -687,7 +686,7 @@
                                 ${i + 1}. ${c.n || 'Senza Nome'} 
                             </span>
                             <span class="castello-info"><b>${tipo}</b> • ${punti} pt</span>
-                            <a href="${link}" class="castello-link" onclick="event.preventDefault(); copyToClipboard('${coordStr}')">
+                            <a href="${link}" class="castello-link">
                                 ${link}
                             </a>
                         </div>
@@ -732,4 +731,3 @@
     </script>
 </body>
 </html>
-
