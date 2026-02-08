@@ -422,19 +422,15 @@
         
         <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
 
-        <p class="instructions">
-            Incolla il link giocatore o alleanza: ti darò tutti i suoi possedimenti e ti dirò se è attivo o inattivo.<br>
-            Se incolli il link alleanza lo farò per tutti i tuoi nemici.
-        </p>
 
         <textarea id="inputText"
-            placeholder="Incolla qui il profilo o link...&#10;Esempio: l+k://alliance?11&337"></textarea>
+            placeholder="Incolla qui il link profilo o link alleanza...&#10; ti darò tutti gli habitat e se è inattivo, seleziona i tuoi target potrai scaricarli in testo"></textarea>
 
         <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
 
         <div id="export-buttons" class="btn-export-box">
-            <button class="btn-exp btn-sel" onclick="exportReport(true)">📥 SELEZIONATI</button>
-            <button class="btn-exp btn-all" onclick="exportReport(false)">📥 TUTTI</button>
+            <button class="btn-exp btn-sel" onclick="exportReport(true)">📥 SCARICA SELEZIONATI</button>
+            <button class="btn-exp btn-all" onclick="exportReport(false)">📥 SCARICA TUTTI</button>
         </div>
 
         <div id="risultati"></div>
@@ -443,9 +439,6 @@
     <footer class="paypal-footer">
         <p style="font-size:12px; color:#93a4c7; margin-bottom:8px; font-family: sans-serif;">
             Ti piace questo strumento?
-        </p>
-        <p style="font-size:11px; color:#5c709b; margin-bottom:20px;">
-            Sviluppato da Re Panza • Imperial Wolves (Ita VI) • Jamaican Peace (Ita 15)
         </p>
         <a href="https://paypal.me/Longo11" target="_blank" class="paypal-link">
             ☕ Offrimi un caffè su PayPal
@@ -695,7 +688,7 @@
                             </span>
                             <span class="castello-info"><b>${tipo}</b> • ${punti} pt</span>
                             <a href="${link}" class="castello-link" onclick="event.preventDefault(); copyToClipboard('${coordStr}')">
-                                ${link} (Clicca per Copiare)
+                                ${link}
                             </a>
                         </div>
                     </div>`;
