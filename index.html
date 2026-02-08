@@ -48,20 +48,20 @@
     </style>
 </head>
 <body>
-    <div class="nav-header"><a href="https://re-panza.github.io/lk_tool/index.html" class="btn-home"><span data-lang="nav_home">🏠 Home</span></a></div>
-    <div class="page-title"><h2 data-lang="search_title">🔍 Ricerca</h2></div>
+    <div class="nav-header"><a href="https://re-panza.github.io/lk_tool/index.html" class="btn-home">🏠 Home</a></div>
+    <div class="page-title"><h2>🔍 Ricerca</h2></div>
 
     <div class="container">
-        <textarea id="inputText" data-lang="search_ph" placeholder="..."></textarea>
-        <button class="btn-cerca" onclick="cerca()" data-lang="btn_search">CERCA</button>
+        <textarea id="inputText" placeholder="Incolla link..."></textarea>
+        <button class="btn-cerca" onclick="cerca()">CERCA</button>
         <div id="export-buttons" class="btn-export-box">
-            <button class="btn-exp btn-sel" onclick="exportReport(true)" data-lang="btn_dl_sel">SELEZIONE</button>
-            <button class="btn-exp btn-all" onclick="exportReport(false)" data-lang="btn_dl_all">TUTTI</button>
+            <button class="btn-exp btn-sel" onclick="exportReport(true)">SELEZIONE</button>
+            <button class="btn-exp btn-all" onclick="exportReport(false)">TUTTI</button>
         </div>
         <div id="risultati"></div>
     </div>
 
-    <footer class="paypal-footer"><a href="https://paypal.me/Longo11" target="_blank" class="paypal-link" data-lang="footer_coffee">☕ PayPal</a></footer>
+    <footer class="paypal-footer"><a href="https://paypal.me/Longo11" target="_blank" class="paypal-link">☕ PayPal</a></footer>
 
     <div id="ai-assistant-container"><div id="ai-window"><div class="ai-header"><span>👑 Re Panza</span><span onclick="toggleAI()" style="cursor:pointer">×</span></div><div id="ai-content"><p>Ciao!</p></div><div class="ai-input-area"><input type="text" id="ai-input" placeholder="..."><button id="ai-send-btn" onclick="chiediAlRe()">Invia</button></div></div><div id="ai-button" onclick="toggleAI()"><img src="https://re-panza.github.io/lk_tool/re-panza-ai.png" alt="AI"></div></div>
 
@@ -103,7 +103,7 @@
                 const castelli = groups[pid].sort((a,b) => b.pt - a.pt);
                 const pts = castelli.reduce((a,b)=>a+b.pt,0);
                 const nome = dbNomiMap[pid] || "ID "+pid;
-                const status = castelli[0].i ? TRANSLATIONS[currentLang].status_inactive : TRANSLATIONS[currentLang].status_active;
+                const status = castelli[0].i ? "⚠️ INATTIVO" : "✅ ATTIVO";
                 
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'player-group';
