@@ -3,13 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://re-panza.github.io/lk_tool/icona.png">
 
-    <title>Ricerca Giocatore - L&K Tool</title>
+    <title>Calcolo Partenze - L&K Tool</title>
 
     <script src="https://re-panza.github.io/lk_tool/version.js"></script>
     <script>
@@ -28,6 +27,7 @@
             --border: rgba(255, 255, 255, .10);
             --success: #34d399;
             --danger: #ef4444;
+            --gold: #fbbf24;
             --dangerBg: rgba(239, 68, 68, .12);
         }
 
@@ -56,7 +56,7 @@
             background: rgba(17, 28, 51, .80);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            padding: 32px 24px;
+            padding: 24px;
             border-radius: 24px;
             border: 1px solid var(--border);
             box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
@@ -82,83 +82,65 @@
         .page-title {
             max-width: 500px;
             margin: 0 auto 24px auto;
-            text-align: left; /* Allineamento a sinistra */
+            text-align: left;
         }
 
         .page-title h2 {
             font-size: 24px;
             font-weight: 800;
             color: #fff;
-            margin: 0 0 10px 0;
+            margin: 0 0 5px 0;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
-        .search-options {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-size: 15px;
+        
+        .page-title p {
             color: var(--muted);
-            padding-left: 4px;
-        }
-
-        .search-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .search-option span {
-            color: var(--text);
-            font-weight: 500;
-        }
-
-        /* ISTRUZIONI STILE */
-        .instructions {
-            text-align: center;
+            margin: 0;
             font-size: 14px;
-            color: #e8eefc;
-            margin-bottom: 16px;
-            line-height: 1.5;
-            opacity: 0.9;
         }
 
-        textarea {
+        /* INPUT STYLES */
+        input, select, textarea {
             width: 100%;
-            height: 140px;
             padding: 16px;
-            margin-bottom: 20px;
             border-radius: 16px;
             border: 1px solid var(--border);
             background: rgba(255, 255, 255, .05);
             color: var(--text);
             outline: none;
-            font-size: 16px;
+            font-size: 15px;
             font-family: inherit;
-            resize: none;
-            -webkit-user-select: text;
-            user-select: text;
             transition: border-color 0.2s;
+            font-weight: 500;
         }
-
-        textarea:focus {
+        
+        input:focus, select:focus, textarea:focus {
             border-color: var(--accent);
         }
 
-        #errorBanner {
-            display: none;
-            margin-bottom: 20px;
-            border: 1px solid rgba(239, 68, 68, .4);
-            background: var(--dangerBg);
-            color: #ffcfcf;
-            border-radius: 16px;
-            padding: 14px;
-            font-size: 14px;
-            font-weight: 600;
-            text-align: center;
+        textarea {
+            resize: vertical;
+            min-height: 100px;
         }
+        
+        select option {
+            background-color: var(--card);
+            color: #fff;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            margin-top: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+        label:first-of-type { margin-top: 0; }
 
         .btn-cerca {
             width: 100%;
@@ -170,8 +152,9 @@
             border-radius: 16px;
             cursor: pointer;
             color: #0f172a;
-            margin-bottom: 12px;
+            margin-top: 24px;
             transition: transform 0.1s, opacity 0.2s;
+            text-transform: uppercase;
         }
 
         .btn-cerca:active {
@@ -179,228 +162,131 @@
             opacity: 0.9;
         }
 
-        .btn-export-box {
-            display: flex;
-            gap: 12px;
-            margin-top: 10px;
+        /* STATUS MESSAGES */
+        .db-status {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 12px;
             display: none;
+            text-align: center;
         }
+        .db-status.loading { display: block; background: rgba(251, 191, 36, 0.1); color: var(--gold); border: 1px solid rgba(251, 191, 36, 0.3); }
+        .db-status.success { display: block; background: rgba(52, 211, 153, 0.1); color: var(--success); border: 1px solid rgba(52, 211, 153, 0.3); }
+        .db-status.error { display: block; background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
 
-        .btn-exp {
-            flex: 1;
-            padding: 14px;
-            border-radius: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 14px;
-            border: 1px solid var(--border);
-        }
-
-        .btn-sel {
-            background: rgba(52, 211, 153, 0.1);
-            color: var(--success);
-            border-color: rgba(52, 211, 153, 0.3);
-        }
-
-        .btn-all {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--muted);
-        }
-
-        /* Stile Risultati */
-        #risultati {
+        /* RISULTATI */
+        #resArea {
             margin-top: 24px;
         }
 
-        .player-group {
-            margin-bottom: 16px;
+        .target-card {
+            background: rgba(255, 255, 255, .03);
             border: 1px solid var(--border);
-            border-radius: 18px;
+            border-radius: 16px;
             overflow: hidden;
-            background: rgba(255, 255, 255, .02);
+            margin-bottom: 16px;
         }
 
-        .player-header {
-            padding: 18px;
-            cursor: pointer;
+        .accordion-header {
+            padding: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: 700;
-            font-size: 16px;
-            color: var(--accent);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .accordion-header:active { background: rgba(255, 255, 255, 0.05); }
+
+        .t-name { font-weight: 700; color: #fff; font-size: 16px; }
+        .t-castle { font-size: 13px; color: var(--muted); margin-top: 2px; font-style: italic; }
+        .t-link-coord {
+            font-family: monospace; font-size: 11px; color: var(--accent);
+            text-decoration: none; display: block; margin-top: 4px; opacity: 0.7;
         }
 
-        .player-content {
+        .accordion-content {
             display: none;
-            padding: 12px;
+            padding: 16px;
             background: rgba(0, 0, 0, 0.2);
             border-top: 1px solid var(--border);
         }
+        .accordion-content.open { display: block; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .player-header.active+.player-content {
-            display: block;
+        .source-info-box {
+            background: rgba(251, 191, 36, 0.1); 
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px; padding: 12px; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 12px;
         }
+        .hab-icon { font-size: 24px; }
+        .source-label { font-size: 11px; color: var(--gold); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
+        .source-name { font-size: 15px; font-weight: 700; color: #fff; margin: 2px 0; }
+        .source-coords { font-family: monospace; font-size: 13px; color: #ccc; }
 
-        .castello-card {
-            background: rgba(255, 255, 255, .03);
-            padding: 14px;
-            margin-bottom: 10px;
-            border-radius: 14px;
+        .config-section {
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 14px;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
         }
 
-        .hab-check {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: var(--accent);
+        .bonus-area { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .bonus-area.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .chk-label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #ddd; cursor: pointer; margin-bottom: 8px; }
+        .chk-label input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+
+        .result-box {
+            margin-top: 16px; padding: 16px; background: rgba(52, 211, 153, 0.1);
+            border: 1px solid var(--success); border-radius: 12px;
+            text-align: center; display: none; animation: fadeIn 0.3s;
+        }
+        .result-box.visible { display: block; }
+
+        .launch-window-simple {
+            margin: 8px 0; font-size: 15px; color: #ddd; line-height: 1.6;
+        }
+        .launch-window-simple b {
+            font-size: 16px; color: #fff; font-family: monospace; display: inline-block;
+            border-bottom: 1px dotted rgba(255,255,255,0.3);
         }
 
-        .castello-nome {
-            font-weight: 700;
-            color: #fff;
-            display: block;
-            font-size: 16px;
+        .launch-btn {
+            display: block; width: 100%; text-align: center;
+            background: var(--gold); color: #000; text-decoration: none;
+            padding: 14px; border-radius: 12px; font-weight: 800;
+            margin-top: 16px; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
         }
 
-        .castello-info {
-            font-size: 13px;
-            color: var(--muted);
-            margin-top: 3px;
-        }
-
-        .castello-link {
-            color: var(--accent);
-            text-decoration: none;
-            font-family: monospace;
-            font-size: 12px;
-            display: block;
-            margin-top: 8px;
-            opacity: 0.6;
-            cursor: pointer;
-        }
-
-        /* --- STILE FOOTER & PAYPAL UNIFORMATO --- */
+        /* --- STILE FOOTER & PAYPAL --- */
         .paypal-footer {
-            text-align: center;
-            margin-top: 60px;
-            padding: 30px 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center; margin-top: 40px; padding: 30px 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .paypal-link {
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            color: #fff !important;
-            background: #0070ba;
-            padding: 12px 28px;
-            border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
-            border: none;
+            text-decoration: none; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 10px;
+            transition: all 0.3s ease; color: #fff !important; background: #0070ba; padding: 12px 28px; border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3); border: none;
         }
+        .paypal-link:hover { background: #005ea6; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 112, 186, 0.5); }
 
-        .paypal-link:hover {
-            background: #005ea6;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 112, 186, 0.5);
-        }
-
-        /* --- STILE ASSISTENTE COPIATO --- */
-        #ai-assistant-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-
-        #ai-button {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            overflow: hidden;
-            border: 2px solid var(--accent);
-        }
-
-        #ai-button img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        #ai-window {
-            display: none;
-            position: absolute;
-            bottom: 85px;
-            right: 0;
-            width: 85vw;
-            max-width: 320px;
-            background: var(--card);
-            border: 1px solid var(--accent);
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-        }
-
-        .ai-header {
-            color: var(--accent);
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 5px;
-        }
-
-        #ai-content {
-            max-height: 250px;
-            overflow-y: auto;
-            margin-bottom: 10px;
-            font-size: 13px;
-            color: var(--text);
-        }
-
-        .ai-input-area {
-            display: flex;
-            gap: 5px;
-            border-top: 1px solid var(--border);
-            padding-top: 10px;
-        }
-
-        #ai-input {
-            flex: 1;
-            background: #000;
-            border: 1px solid var(--border);
-            color: #fff;
-            border-radius: 5px;
-            padding: 8px;
-            font-size: 12px;
-        }
-
-        #ai-send-btn {
-            background: var(--accent);
-            border: none;
-            border-radius: 5px;
-            padding: 5px 15px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #000;
-        }
+        /* --- STILE ASSISTENTE AI --- */
+        #ai-assistant-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+        #ai-button { width: 65px; height: 65px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); overflow: hidden; border: 2px solid var(--accent); }
+        #ai-button img { width: 100%; height: 100%; object-fit: cover; }
+        #ai-window { display: none; position: absolute; bottom: 80px; right: 0; width: 85vw; max-width: 320px; background: var(--card); border: 1px solid var(--accent); border-radius: 20px; padding: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); }
+        .ai-header { color: var(--accent); font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        #ai-content { max-height: 250px; overflow-y: auto; margin-bottom: 10px; font-size: 13px; color: var(--text); }
+        .ai-input-area { display: flex; gap: 5px; border-top: 1px solid var(--border); padding-top: 10px; }
+        #ai-input { flex: 1; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 5px; padding: 8px; font-size: 12px; }
+        #ai-send-btn { background: var(--accent); border: none; border-radius: 5px; padding: 5px 15px; cursor: pointer; font-weight: bold; color: #000; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 
@@ -411,29 +297,41 @@
     </div>
 
     <div class="page-title">
-        <h2>🔍 Ricerca Target</h2>
-        <div class="search-options">
-            <div class="search-option">👤 <span>Giocatori</span></div>
-            <div class="search-option">🛡️ <span>Alleanze</span></div>
-            <div class="search-option">💤 <span>Inattivi</span></div>
-        </div>
+        <h2>🎯 Calcolo Partenze</h2>
+        <p>Pianifica attacchi precisi con ritardo o spaccati</p>
     </div>
 
     <div class="container">
         
-        <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
+        <label style="color:var(--success)">🔗 Link Tuo Profilo (Attaccante)</label>
+        <input type="text" id="inAttacker" placeholder="l+k://player?123456&327" oninput="checkDB()">
+        <div id="dbMsg" class="db-status">In attesa di link giocatore...</div>
 
-        <textarea id="inputText"
-            placeholder="Incolla qui il link profilo o link alleanza...&#10; ti darò tutti i possedimenti e dirò se sono attivi o meno. Seleziona ciò che ti serve e scarica la lista da copiare"></textarea>
+        <label style="color:var(--danger)">🎯 Link Bersagli (Uno per riga)</label>
+        <textarea id="inTargets" placeholder="l+k://coordinates?111,222&327&#10;l+k://coordinates?333,444&327"></textarea>
 
-        <button class="btn-cerca" onclick="cerca()">AVVIA RICERCA</button>
-
-        <div id="export-buttons" class="btn-export-box">
-            <button class="btn-exp btn-sel" onclick="exportReport(true)">📥 SCARICA SELEZIONATI</button>
-            <button class="btn-exp btn-all" onclick="exportReport(false)">📥 SCARICA TUTTI</button>
+        <div style="display:flex; gap:12px;">
+            <div style="flex:1">
+                <label>📅 Data Impatto</label>
+                <input type="date" id="inDate">
+            </div>
+            <div style="flex:1">
+                <label>⏰ Ora Impatto</label>
+                <input type="time" id="inTime" step="60">
+            </div>
         </div>
 
-        <div id="risultati"></div>
+        <button class="btn-cerca" onclick="startCalc()">CALCOLA TARGETS</button>
+
+        <div id="resArea" class="hidden">
+            <div style="text-align:center; padding:12px; background:rgba(255,255,255,0.05); border-radius:12px; margin-bottom:20px; border:1px solid var(--border);">
+                <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Impatto Previsto</div>
+                <div id="displayImpactTime" style="font-size:18px; font-weight:800; color:#fff;">--:--</div>
+            </div>
+            
+            <div id="resList"></div>
+        </div>
+
     </div>
 
     <footer class="paypal-footer">
@@ -460,7 +358,7 @@
             </div>
         </div>
         <div id="ai-button" onclick="toggleAI()">
-            <img src="https://re-panza.github.io/lk_tool/re-panza-ai.png" alt="Re Panza AI">
+            <img src="https://re-panza.github.io/lk_tool/re-panza-ai.png" alt="AI">
         </div>
     </div>
 
@@ -468,271 +366,314 @@
     <script src="https://re-panza.github.io/re-panza-core/re_panza_brain.js"></script>
 
     <script>
-        let dbCastelli = [];
-        let dbNomiMap = {}; // Mappa ID -> Nome
-        let mondoCaricatoAttualmente = "";
+        let GAME_DATA = null;
+        let DB = [], PLAYER_NAMES = {}, worldId = null;
+        let myPID = null;
+        let myCastles = [];
+        let targetsList = [];
 
-        function getTipoHabitat(t) {
-            const tipo = String(t).trim();
-            if (tipo === "0") return "Castello";
-            if (tipo === "2") return "Fortezza";
-            if (tipo === "4") return "Città";
-            return isNaN(tipo) ? tipo : "Metropoli";
+        // Caricamento Dati Truppe
+        async function loadGameData() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_truppe.json?v=' + Date.now());
+                if (!response.ok) throw new Error("Errore HTTP: " + response.status);
+                GAME_DATA = (await response.json()).game_config;
+            } catch (e) { console.error(e); }
         }
+        window.onload = () => { loadGameData(); };
 
-        async function cerca() {
-            const input = document.getElementById('inputText').value;
-            const resDiv = document.getElementById('risultati');
-            const exportDiv = document.getElementById('export-buttons');
-            const errorBanner = document.getElementById('errorBanner');
+        // Usa le funzioni di common.js ora!
+        // parseInputLink, getHabitatInfo, getDist, pad sono tutti in common.js
 
-            resDiv.innerHTML = "";
-            errorBanner.style.display = "none";
-            exportDiv.style.display = "none";
+        function checkDB() {
+            let val = document.getElementById('inAttacker').value;
+            let msg = document.getElementById('dbMsg');
+            let parsed = parseInputLink(val); // Da common.js
 
-            // 1. Parsing Input
-            const playerPattern = /(?:Nome\s*giocatore|Giocatore)\s*:\s*([^\n\r]+)\s+(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
-            const namedMatches = [...input.matchAll(playerPattern)];
-            
-            // Regex universale per player link
-            const simplePlayerPattern = /(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
-            const simplePlayerMatches = [...input.matchAll(simplePlayerPattern)];
-
-            // Regex Alleanze
-            const alliancePattern = /(?:l\+k:\/\/|https?:\/\/.*?)alliance\?(\d+)&(\d+)/gi;
-            const allianceMatches = [...input.matchAll(alliancePattern)];
-
-            if (simplePlayerMatches.length === 0 && allianceMatches.length === 0) {
-                errorBanner.innerHTML = "⚠️ Incolla un link giocatore o alleanza valido.";
-                errorBanner.style.display = "block";
-                return;
-            }
-
-            // Mappatura ID -> Nome (da input utente)
-            const mapIdToNameInput = {};
-            const targetPlayerIds = new Set();
-            let mondoScelto = null;
-
-            // Priorità ai match con nome esplicito
-            namedMatches.forEach(m => {
-                const nome = m[1].trim();
-                const id = parseInt(m[2]);
-                const mondo = m[3];
-                mapIdToNameInput[id] = nome;
-            });
-
-            // Aggiungi tutti i player ID trovati
-            simplePlayerMatches.forEach(m => {
-                const id = parseInt(m[1]);
-                const mondo = m[2];
-                targetPlayerIds.add(id);
-                if (!mondoScelto) mondoScelto = mondo;
-            });
-
-            const targetAllianceIds = new Set();
-            allianceMatches.forEach(m => {
-                const id = parseInt(m[1]);
-                const mondo = m[2];
-                targetAllianceIds.add(id);
-                if (!mondoScelto) mondoScelto = mondo; // Se non c'era player, usa mondo ally
-            });
-
-            // 2. Configurazione Database (URL CORRETTI CON RAW)
-            let urlDBCastelli;
-            let urlDBNomi = null;
-            
-            // Forziamo la conversione in stringa per evitare errori di tipo
-            const mondoStr = String(mondoScelto).trim();
-
-            if (mondoStr === "327") {
-                // *** CONFIGURAZIONE SPECIFICA PER MONDO 327 ***
-                // Castelli -> lk_scanner
-                urlDBCastelli = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json";
-                // Nomi -> scanner_classifica327
-                urlDBNomi = "https://raw.githubusercontent.com/Re-Panza/scanner_classifica327/main/database_classificamondo327.json";
-            } else {
-                // *** CONFIGURAZIONE STANDARD (lk_database) PER ALTRI MONDI (es. 237, 337) ***
-                urlDBCastelli = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${mondoStr}.json`;
-                urlDBNomi = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_classificamondo${mondoStr}.json`;
-            }
-
-            // 3. Caricamento Dati (Parallelo)
-            if (mondoCaricatoAttualmente !== mondoStr) {
-                try {
-                    const promises = [fetch(urlDBCastelli + "?v=" + Date.now()).then(r => {
-                        if (!r.ok) throw new Error("File castelli non trovato: " + r.status);
-                        return r.json();
-                    })];
+            if (parsed) {
+                if(parsed.type !== 'player') { msg.innerText = "⚠ Usa link 'player' per identificarti."; msg.className = "db-status error"; }
+                let w = parsed.w;
+                if (w !== worldId) {
+                    worldId = w;
+                    msg.className = "db-status loading";
+                    msg.innerText = `Scarico DB Mondo ${w}...`;
                     
-                    if (urlDBNomi) {
-                        promises.push(
-                            fetch(urlDBNomi + "?v=" + Date.now())
-                            .then(r => r.ok ? r.json() : []) 
-                            .catch(() => [])
-                        );
+                    let urlC, urlN;
+                    if (w === "327") {
+                        urlC = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json";
+                        urlN = "https://raw.githubusercontent.com/Re-Panza/scanner_classifica327/main/database_classificamondo327.json";
                     } else {
-                        promises.push(Promise.resolve([]));
+                        urlC = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${w}.json`;
+                        urlN = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_classificamondo${w}.json`;
                     }
 
-                    const [datiCastelli, datiNomi] = await Promise.all(promises);
-                    
-                    dbCastelli = datiCastelli;
-                    
-                    // Costruiamo la mappa ID -> Nome
-                    dbNomiMap = {};
-                    if (Array.isArray(datiNomi)) {
-                        datiNomi.forEach(p => {
-                            const n = p.nick || p.name || p.n;
-                            const pid = p.id || p.p;
-                            if (pid && n) {
-                                dbNomiMap[parseInt(pid)] = n;
-                            }
-                        });
-                    }
+                    Promise.all([fetch(urlC + "?v=" + Date.now()).then(r => r.json()), fetch(urlN + "?v=" + Date.now()).then(r => r.json())])
+                    .then(([cD, nD]) => {
+                        DB = [];
+                        const f = (n) => { if (Array.isArray(n)) n.forEach(f); else if (n && n.x) { n.p = n.p || n.pid || 0; DB.push(n); } else if (typeof n === 'object') Object.values(n).forEach(f); }; 
+                        f(cD);
+                        PLAYER_NAMES = {};
+                        if (Array.isArray(nD)) nD.forEach(p => { PLAYER_NAMES[p.id || p.p] = p.nick || p.name || p.n; });
+                        identifyUser(parsed, msg);
+                    }).catch((err) => { msg.className = "db-status error"; msg.innerText = "Errore DB"; });
+                } else { identifyUser(parsed, msg); }
+            } else { msg.className = "db-status"; msg.innerText = ""; msg.style.display="none"; }
+        }
 
-                    mondoCaricatoAttualmente = mondoStr;
-                } catch (err) {
-                    console.error(err);
-                    alert(`Impossibile caricare i database per il Mondo ${mondoStr}.\nErrore: ${err.message}\nLink tentato: ${urlDBCastelli}`);
-                    return;
-                }
-            }
-
-            // 4. Filtraggio Castelli
-            let castelliTrovati = dbCastelli.filter(c => {
-                if (targetPlayerIds.has(c.p)) return true;
-                if (targetAllianceIds.has(c.a)) return true;
-                return false;
-            });
-
-            if (castelliTrovati.length === 0) {
-                resDiv.innerHTML = `<p style="text-align:center; color:#93a4c7; margin-top:20px;">Nessun castello trovato nel Mondo ${mondoStr}.</p>`;
-                return;
-            }
-
-            // Raggruppamento per Giocatore
-            const gruppiPerGiocatore = {};
-            castelliTrovati.forEach(c => {
-                if (!gruppiPerGiocatore[c.p]) {
-                    gruppiPerGiocatore[c.p] = [];
-                }
-                gruppiPerGiocatore[c.p].push(c);
-            });
-
-            // 5. ORDINAMENTO E RENDER
-            // Creiamo un array di oggetti per poterli ordinare
-            const listaGiocatori = Object.keys(gruppiPerGiocatore).map(pid => {
-                const idNumerico = parseInt(pid);
-                const castelli = gruppiPerGiocatore[pid];
-                
-                // Ordina castelli per punti decrescenti
-                castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
-                
-                // Calcola il punteggio totale del giocatore (somma dei castelli visibili)
-                const totalePunti = castelli.reduce((acc, c) => acc + (c.pt || 0), 0);
-                
-                // Risoluzione Nome
-                const nomeGiocatore = mapIdToNameInput[idNumerico] || dbNomiMap[idNumerico] || "ID: " + pid;
-
-                return {
-                    id: idNumerico,
-                    nome: nomeGiocatore,
-                    castelli: castelli,
-                    puntiTotali: totalePunti
-                };
-            });
-
-            // Ordina la lista giocatori dal più "grosso" al più piccolo
-            listaGiocatori.sort((a, b) => b.puntiTotali - a.puntiTotali);
-
-            // Renderizza a schermo
-            listaGiocatori.forEach(giocatore => {
-                const isInactive = giocatore.castelli[0].i === true;
-                let nomeDisplay = giocatore.nome;
-                
-                // Aggiungiamo i punti totali al nome per chiarezza
-                nomeDisplay += ` <span style="font-size:12px; color:#93a4c7">(${giocatore.puntiTotali.toLocaleString()} pt)</span>`;
-
-                if (isInactive) {
-                    nomeDisplay += ` <span style="color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">⚠️ INATTIVO</span>`;
-                } else {
-                    nomeDisplay += ` <span style="color:#34d399; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">✅ ATTIVO</span>`;
-                }
-
-                renderPlayerGroup(nomeDisplay, giocatore.castelli, resDiv, mondoStr);
-            });
-
-            if (listaGiocatori.length > 0) {
-                exportDiv.style.display = "flex";
+        function identifyUser(parsed, msgElement) {
+            myPID = null; myCastles = [];
+            if (parsed.type === 'player') myPID = parsed.id;
+            else if (parsed.type === 'coord') { let me = DB.find(c => c.x === parsed.x && c.y === parsed.y); if(me) myPID = me.p; }
+            
+            if (myPID) {
+                myCastles = DB.filter(c => c.p === myPID);
+                if (myCastles.length > 0) {
+                    msgElement.className = "db-status success";
+                    msgElement.innerText = `✅ Identificato: ${PLAYER_NAMES[myPID] || "Giocatore"} (${myCastles.length} castelli)`;
+                } else { msgElement.className = "db-status error"; msgElement.innerText = `⚠ Nessun castello trovato per ID ${myPID}`; }
             }
         }
 
-        function renderPlayerGroup(nome, castelli, container, mondo) {
-            const group = document.createElement('div');
-            group.className = 'player-group';
+        function getSpeedForCard(i, troopKey) {
+            if (!GAME_DATA) return 0;
+            let base = GAME_DATA.troops_base_seconds[troopKey];
+            let hab = targetsList[i].detectedHabitat; 
+            let habConfig = GAME_DATA.habitats[hab];
+            let factor = habConfig.base_multiplier;
 
-            let itemsHtml = castelli.map((c, i) => {
-                const tipo = getTipoHabitat(c.t);
-                const link = `l+k://coordinates?${c.x},${c.y}&${mondo}`;
-                const punti = (c.pt || 0).toLocaleString();
-                const coordStr = `${c.x},${c.y}`;
+            if (hab === 'castello') {
+                if (document.getElementById(`chkMap_${i}`)?.checked) factor = 0.95;
+                if (document.getElementById(`selEventCastello_${i}`)?.value === "100") factor *= 0.5;
+            } else if (hab === 'fortezza') {
+                if (document.getElementById(`chkBussola_${i}`)?.checked) factor *= 0.95;
+                if (document.getElementById(`selEventFortezza_${i}`)?.value === "100") factor *= 0.5;
+            } else if (hab === 'citta') {
+                factor *= habConfig.building_levels[parseInt(document.getElementById(`selCityLvl_${i}`).value)] || 1.0;
+                if (document.getElementById(`selEventCitta_${i}`)?.value === "100") factor *= 0.5;
+            } else if (hab === 'metro') {
+                factor *= habConfig.building_levels[parseInt(document.getElementById(`selMetroLvl_${i}`).value)] || 1.0;
+                if (document.getElementById(`chkManovra_${i}`)?.checked) factor *= 0.90;
+                if (document.getElementById(`selEventMetro_${i}`)?.value === "100") factor *= 0.5;
+            }
+            factor *= parseFloat(document.getElementById(`selCountryBonus_${i}`).value) || 1.0;
+            return base * factor;
+        }
 
-                return `
-                    <div class="castello-card">
-                        <input type="checkbox" class="hab-check" 
-                               data-nome="${c.n}" data-tipo="${tipo}" 
-                               data-punti="${punti}" data-link="${link}">
-                        <div style="flex-grow:1">
-                            <span class="castello-nome">
-                                ${i + 1}. ${c.n || 'Senza Nome'} 
-                            </span>
-                            <span class="castello-info"><b>${tipo}</b> • ${punti} pt</span>
-                            <a href="${link}" class="castello-link">
-                                ${link}
-                            </a>
+        function startCalc() {
+            if (!DB.length) return alert("Attendi il DB!");
+            if (myCastles.length === 0) return alert("Nessun castello trovato.");
+            let dVal = document.getElementById('inDate').value;
+            let tVal = document.getElementById('inTime').value;
+            if (!dVal || !tVal) return alert("Data incompleta!");
+            
+            let rawTargets = document.getElementById('inTargets').value.split('\n');
+            targetsList = [];
+            
+            rawTargets.forEach(line => {
+                let lk = parseInputLink(line); // Da common.js
+                if(lk && lk.type === 'coord') {
+                    let targetObj = DB.find(c => c.x === lk.x && c.y === lk.y);
+                    let tName = targetObj ? (PLAYER_NAMES[targetObj.p] || targetObj.n || "Sconosciuto") : "Coordinate";
+                    let tCastleName = targetObj && targetObj.n ? targetObj.n : "Castello";
+                    
+                    let bestSource = null;
+                    let maxDist = -1;
+                    myCastles.forEach(source => {
+                        let d = getDist(source.x, source.y, lk.x, lk.y); // Da common.js
+                        if(d > maxDist) { maxDist = d; bestSource = source; }
+                    });
+
+                    let typeCode = bestSource.t || 0; 
+                    let habInfo = getHabitatInfo(typeCode); // Da common.js
+                    let sName = bestSource.n || "Mio Castello";
+
+                    targetsList.push({ 
+                        coords: lk, 
+                        name: tName, 
+                        castleName: tCastleName,
+                        source: bestSource,
+                        sourceName: sName,
+                        dist: maxDist,
+                        detectedHabitat: habInfo.type, 
+                        habLabel: habInfo.label,
+                        habIcon: habInfo.icon
+                    });
+                }
+            });
+
+            if(targetsList.length === 0) return alert("Nessun target valido!");
+
+            document.getElementById('resArea').classList.remove('hidden');
+            
+            let impactDate = new Date(dVal + "T" + tVal);
+            document.getElementById('displayImpactTime').innerText = 
+                `${pad(impactDate.getDate())}/${pad(impactDate.getMonth()+1)} ore ${pad(impactDate.getHours())}:${pad(impactDate.getMinutes())}`;
+            
+            // Scroll to results
+            document.getElementById('resArea').scrollIntoView({ behavior: 'smooth' });
+            renderResults();
+        }
+
+        function renderResults() {
+            let container = document.getElementById('resList');
+            container.innerHTML = "";
+            
+            const TROOPS_UI = [
+                { label: "Scegli Truppa...", key: "" },
+                { label: "Lanciere", key: "Lanciere" }, { label: "Balestriere", key: "Balestriere" },
+                { label: "Cav. Pesante / Samurai", key: "Cav. Pesante" }, { label: "Spadaccino / Carretto", key: "Spadaccino" },
+                { label: "Arciere / Cocca", key: "Arciere" }, { label: "Cav. Leggero", key: "Cav. Leggero" },
+                { label: "Carro bue", key: "Carro bue" }, { label: "Ashigaru / Torre", key: "Ashigaru" },
+                { label: "Berserker / Catapulta", key: "Berserker" }, { label: "Arc. Daikyu / Ballista", key: "Arc. Daikyu" },
+                { label: "Arc. Norreno", key: "Arc. Norreno" }, { label: "Cav. Ascia / Orca", key: "Cav. Ascia" }
+            ];
+            let troopOpts = TROOPS_UI.map(tr => `<option value="${tr.key}">${tr.label}</option>`).join('');
+
+            let lvlOpts = ""; for (let j = 1; j <= 30; j++) lvlOpts += `<option value="${j}">Lv ${j}</option>`;
+            const cm = [0.90, 0.89, 0.88, 0.87, 0.86, 0.85, 0.84, 0.83, 0.82, 0.81, 0.80, 0.79, 0.78, 0.77, 0.76, 0.74, 0.72, 0.69, 0.65, 0.60];
+            let countryOpts = '<option value="1">Nessuno (100%)</option>';
+            cm.forEach((val, k) => { countryOpts += `<option value="${val}">Livello ${k + 1} (${Math.round(val * 100)}%)</option>`; });
+
+            targetsList.forEach((t, i) => {
+                let div = document.createElement('div');
+                div.className = "target-card";
+                
+                let sourceLink = `l+k://coordinates?${t.source.x},${t.source.y}&${worldId}`;
+                let targetLinkStr = `l+k://coordinates?${t.coords.x},${t.coords.y}&${worldId}`;
+
+                let bonusHtml = "";
+                if (t.detectedHabitat === 'castello') {
+                    bonusHtml = `
+                        <div class="bonus-area active">
+                        <label class="chk-label"><input type="checkbox" id="chkMap_${i}" onchange="calculateRow(${i})"> Mappa Area (+5%)</label>
+                        <div style="margin-top:5px">
+                            <label style="margin-top:0">Eventi Speciali</label>
+                            <select id="selEventCastello_${i}" onchange="calculateRow(${i})"><option value="0">Nessuno</option><option value="100">⚡ Speed 100%</option></select>
                         </div>
-                    </div>`;
-            }).join('');
+                        </div>`;
+                } else if (t.detectedHabitat === 'fortezza') {
+                    bonusHtml = `
+                        <div class="bonus-area active">
+                        <label class="chk-label"><input type="checkbox" id="chkBussola_${i}" onchange="calculateRow(${i})"> Bussola (+5%)</label>
+                        <div style="margin-top:5px">
+                            <label style="margin-top:0">Eventi Speciali</label>
+                            <select id="selEventFortezza_${i}" onchange="calculateRow(${i})"><option value="0">Nessuno</option><option value="100">⚡ Speed 100%</option></select>
+                        </div>
+                        </div>`;
+                } else if (t.detectedHabitat === 'citta') {
+                    bonusHtml = `
+                        <div class="bonus-area active">
+                        <div style="margin-bottom:8px">
+                            <label style="margin-top:0">Livello Caserma</label> 
+                            <select id="selCityLvl_${i}" onchange="calculateRow(${i})">${lvlOpts}</select>
+                        </div>
+                        <div style="margin-top:5px">
+                            <label style="margin-top:0">Eventi Speciali</label>
+                            <select id="selEventCitta_${i}" onchange="calculateRow(${i})"><option value="0">Nessuno</option><option value="100">⚡ Speed 100%</option></select>
+                        </div>
+                        </div>`;
+                } else if (t.detectedHabitat === 'metro') {
+                    bonusHtml = `
+                        <div class="bonus-area active">
+                        <div style="margin-bottom:8px">
+                            <label style="margin-top:0">Livello Accademia</label> 
+                            <select id="selMetroLvl_${i}" onchange="calculateRow(${i})">${lvlOpts}</select>
+                        </div>
+                        <label class="chk-label"><input type="checkbox" id="chkManovra_${i}" onchange="calculateRow(${i})"> Manovra Fianco (+10%)</label>
+                        <div style="margin-top:5px">
+                            <label style="margin-top:0">Eventi Speciali</label>
+                            <select id="selEventMetro_${i}" onchange="calculateRow(${i})"><option value="0">Nessuno</option><option value="100">⚡ Speed 100%</option></select>
+                        </div>
+                        </div>`;
+                }
 
-            group.innerHTML = `
-                <div class="player-header" onclick="this.classList.toggle('active'); const content = this.nextElementSibling; content.style.display = content.style.display === 'block' ? 'none' : 'block';">
-                    <span>👤 ${nome} (${castelli.length})</span>
-                    <span>▼</span>
+                div.innerHTML = `
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div>
+                            <div class="t-name">${t.name}</div>
+                            <div class="t-castle">${t.castleName}</div>
+                            <a href="${targetLinkStr}" class="t-link-coord">${targetLinkStr}</a>
+                        </div>
+                        <div style="text-align:right; font-size:20px; color:var(--muted)">▼</div>
+                    </div>
+
+                    <div class="accordion-content">
+                        
+                        <div class="source-info-box">
+                            <div class="hab-icon">${t.habIcon}</div>
+                            <div style="flex:1">
+                                <div class="source-label">Parti da: ${t.habLabel}</div>
+                                <div class="source-name">${t.sourceName}</div>
+                                <div class="source-coords">${t.source.x},${t.source.y}</div>
+                                <a href="${sourceLink}" style="font-size:11px; color:var(--accent); text-decoration:none;">${sourceLink}</a>
+                            </div>
+                        </div>
+
+                        <label>Configura Truppa</label>
+                        <select id="selTroop_${i}" onchange="calculateRow(${i})" style="margin-bottom:10px;">${troopOpts}</select>
+
+                        <div class="config-section">
+                            <div style="margin-bottom:8px;">
+                                <label style="margin-top:0">Bonus Paese (Sentieri)</label>
+                                <select id="selCountryBonus_${i}" onchange="calculateRow(${i})">${countryOpts}</select>
+                            </div>
+                            ${bonusHtml}
+                        </div>
+
+                        <div id="resBox_${i}" class="result-box"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleAccordion(header) {
+            let content = header.nextElementSibling;
+            const isOpen = content.style.display === "block";
+            
+            // Close all others? (Optional - keeping multiple open is usually better for comparison)
+            
+            if(isOpen) {
+                content.style.display = "none";
+                header.querySelector('div:last-child').style.transform = 'rotate(0deg)';
+            } else {
+                content.style.display = "block";
+                header.querySelector('div:last-child').style.transform = 'rotate(180deg)';
+                content.classList.add('open');
+            }
+        }
+
+        function calculateRow(idx) {
+            let troopKey = document.getElementById(`selTroop_${idx}`).value;
+            let resBox = document.getElementById(`resBox_${idx}`);
+            if(!troopKey) { resBox.classList.remove('visible'); return; }
+            
+            let targetData = targetsList[idx];
+            let speed = getSpeedForCard(idx, troopKey);
+            
+            let travelSec = targetData.dist * speed;
+            let travelSecSafe = travelSec * 1.05; // 5% delay
+            
+            let dVal = document.getElementById('inDate').value;
+            let tVal = document.getElementById('inTime').value;
+            let impactTime = new Date(dVal + "T" + tVal).getTime();
+            
+            let depTimeExact = new Date(impactTime - (travelSec * 1000));
+            let depTimeSafe = new Date(impactTime - (travelSecSafe * 1000));
+            
+            // pad() da common.js
+            const fmt = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} del ${pad(d.getDate())}/${pad(d.getMonth()+1)}`;
+            
+            let strExact = fmt(depTimeExact);
+            let strSafe = fmt(depTimeSafe);
+            
+            resBox.innerHTML = `
+                <div class="launch-window-simple">
+                    Parti tra <br><b>${strSafe}</b><br> e <br><b>${strExact}</b>
                 </div>
-                <div class="player-content" style="display:none">${itemsHtml}</div>
+                <a href="l+k://coordinates?${targetData.coords.x},${targetData.coords.y}&${worldId}" class="launch-btn">VAI AL TARGET</a>
             `;
-            container.appendChild(group);
-        }
-
-        function exportReport(soloSelezionati) {
-            const checkboxes = document.querySelectorAll('.hab-check');
-            let testo = "--- REPORT INTELLIGENCE L&K ---\n\n";
-            let count = 0;
-            checkboxes.forEach(cb => {
-                if (!soloSelezionati || cb.checked) {
-                    testo += `${cb.dataset.tipo}: ${cb.dataset.nome} (${cb.dataset.punti} pt)\nLink: ${cb.dataset.link}\n\n`;
-                    count++;
-                }
-            });
-            if (count === 0) return alert("Nessuna selezione!");
-            const blob = new Blob([testo], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Report_Intelligence.txt`;
-            a.click();
-        }
-
-        // 2. Gestione Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                // Versione per forzare aggiornamento SW
-                if (typeof APP_VERSION !== 'undefined') {
-                    navigator.serviceWorker.register('sw.js?v=' + APP_VERSION);
-                } else {
-                    navigator.serviceWorker.register('sw.js');
-                }
-            });
+            resBox.classList.add('visible');
         }
     </script>
 </body>
