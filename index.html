@@ -584,12 +584,14 @@
                             DB = [];
                             PLAYER_NAMES = {};
                             
+                            // Mappatura esatta basata sulla struttura del file json fornito
                             if (Array.isArray(data)) {
                                 data.forEach(item => {
+                                    // Verifica campi obbligatori x e y presenti nel file
                                     if (item && typeof item.x !== 'undefined' && typeof item.y !== 'undefined') {
                                         DB.push(item);
+                                        // Mappatura player ID (chiave p) e nome player (chiave pn)
                                         if (item.p) {
-                                            // Utilizzo esclusivo della chiave 'pn' per il nome player
                                             let pName = item.pn; 
                                             if (pName && !PLAYER_NAMES[item.p]) {
                                                 PLAYER_NAMES[item.p] = pName;
@@ -603,7 +605,7 @@
                             
                             if(DB.length === 0) {
                                 msg.className = "db-status error";
-                                msg.innerText = "Errore: Il file scaricato non contiene castelli validi.";
+                                msg.innerText = "Errore: Il database scaricato non contiene dati validi.";
                             } else {
                                 identifyUser(parsed, msg);
                             }
@@ -628,9 +630,10 @@
             if (parsed.type === 'player') myPID = parsed.id;
 
             if (myPID) {
+                // Filtro castelli per player ID (chiave p nel file)
                 myCastles = DB.filter(c => String(c.p) === String(myPID));
                 if (myCastles.length > 0) {
-                    // Recupero nome player tramite chiave 'pn'
+                    // Recupero nome tramite chiave pn rilevata nel database
                     let pName = PLAYER_NAMES[myPID] || myCastles[0].pn || "Giocatore";
                     msgElement.className = "db-status success";
                     msgElement.innerText = `✅ Identificato: ${pName} (${myCastles.length} castelli) - DB Pronto`;
@@ -667,28 +670,27 @@
         }
 
         function startCalc() {
-            if (isDownloading) return alert("Il database si sta ancora scaricando. Attendi la scritta verde 'Identificato' o 'DB Pronto'.");
-            if (!DB || DB.length === 0) return alert("Errore: Il database è vuoto. Ricarica la pagina o controlla il link.");
-            if (myCastles.length === 0) return alert("Devi prima identificarti inserendo il TUO link nel primo campo e attendere la conferma.");
+            if (isDownloading) return alert("Attendere il download del database.");
+            if (!DB || DB.length === 0) return alert("Database non caricato correttamente.");
+            if (myCastles.length === 0) return alert("Inserire prima un link attaccante valido per caricare i propri castelli.");
 
             let dVal = document.getElementById('inDate').value;
             let tVal = document.getElementById('inTime').value;
-            if (!dVal || !tVal) return alert("Inserisci Data e Ora di impatto!");
+            if (!dVal || !tVal) return alert("Inserire Data e Ora di impatto!");
 
             let rawTargets = document.getElementById('inTargets').value.split('\n');
             targetsList = [];
 
             rawTargets.forEach(line => {
                 let lk = parseLK(line);
-                if (lk && lk.x !== undefined && lk.y !== undefined) {
+                if (lk && typeof lk.x !== 'undefined' && typeof lk.y !== 'undefined') {
                     let targetObj = DB.find(c => c.x === lk.x && c.y === lk.y);
                     let tName = "Sconosciuto";
                     let tCastleName = "Castello";
                     
                     if (targetObj) {
-                        // Lettura nome target tramite chiave 'pn'
+                        // Utilizzo chiave pn per il nome del player e chiave n per il nome del castello
                         tName = PLAYER_NAMES[targetObj.p] || targetObj.pn || "Giocatore";
-                        // Lettura nome castello tramite chiave 'n'
                         tCastleName = targetObj.n || "Castello";
                     }
 
@@ -702,7 +704,7 @@
                     if (bestSource) {
                         let typeCode = bestSource.t || 0;
                         let habInfo = getHabitatInfo(typeCode);
-                        // Lettura nome castello sorgente tramite chiave 'n'
+                        // Nome del castello sorgente dalla chiave n del database
                         let sName = bestSource.n || "Mio Castello";
 
                         targetsList.push({
@@ -720,7 +722,7 @@
                 }
             });
 
-            if (targetsList.length === 0) return alert("Nessun target valido inserito nel box.");
+            if (targetsList.length === 0) return alert("Nessun bersaglio valido trovato nelle coordinate inserite.");
 
             document.getElementById('resArea').classList.remove('hidden');
             let impactTime = new Date(dVal + "T" + tVal);
