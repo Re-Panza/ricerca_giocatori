@@ -584,13 +584,13 @@
                             DB = [];
                             PLAYER_NAMES = {};
                             
-                            // Mappatura basata sulla struttura del file json fornito
+                            // Mappatura esatta basata sulla struttura del file json fornito
                             if (Array.isArray(data)) {
                                 data.forEach(item => {
-                                    // Lettura coordinate x e y
+                                    // Verifica campi obbligatori x e y presenti nel file
                                     if (item && typeof item.x !== 'undefined' && typeof item.y !== 'undefined') {
                                         DB.push(item);
-                                        // Mapping Player ID (chiave p) e Nome Player (chiave pn)
+                                        // Mappatura player ID (chiave p) e nome player (chiave pn)
                                         if (item.p) {
                                             let pName = item.pn; 
                                             if (pName && !PLAYER_NAMES[item.p]) {
@@ -627,19 +627,20 @@
             if (isDownloading) return; 
 
             myPID = null; myCastles = [];
+            // Estrazione ID direttamente dal link parsato (es. l+k://player?1347&327 -> 1347)
             if (parsed.type === 'player') myPID = parsed.id;
 
             if (myPID) {
-                // Filtro per ID giocatore basato sulla chiave 'p' del database
+                // Filtro castelli per player ID (chiave p nel file)
                 myCastles = DB.filter(c => String(c.p) === String(myPID));
                 if (myCastles.length > 0) {
-                    // Recupero nome player tramite la chiave 'pn' mappata
+                    // Recupero nome tramite chiave pn rilevata nel database
                     let pName = PLAYER_NAMES[myPID] || myCastles[0].pn || "Giocatore";
                     msgElement.className = "db-status success";
                     msgElement.innerText = `✅ Identificato: ${pName} (${myCastles.length} castelli) - DB Pronto`;
                 } else {
                     msgElement.className = "db-status error";
-                    msgElement.innerText = `⚠ Nessun castello trovato per ID ${myPID}.`;
+                    msgElement.innerText = `⚠ Nessun castello trovato per ID ${myPID}. Assicurati di essere in questo mondo.`;
                 }
             }
         }
@@ -672,7 +673,7 @@
         function startCalc() {
             if (isDownloading) return alert("Attendere il download del database.");
             if (!DB || DB.length === 0) return alert("Database non pronto.");
-            if (myCastles.length === 0) return alert("Inserire link attaccante valido.");
+            if (myCastles.length === 0) return alert("Inserire prima un link attaccante valido per caricare i propri castelli.");
 
             let dVal = document.getElementById('inDate').value;
             let tVal = document.getElementById('inTime').value;
