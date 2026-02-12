@@ -539,7 +539,6 @@
         let myPID = null;
         let myCastles = [];
         let targetsList = [];
-        let isDownloading = false;
 
         async function loadGameData() {
             try {
@@ -550,6 +549,7 @@
         }
         window.onload = () => { loadGameData(); };
 
+        // --- FUNZIONE CHECK DB (Clean) ---
         function checkDB() {
             let val = document.getElementById('inAttacker').value;
             let msg = document.getElementById('dbMsg');
@@ -564,82 +564,82 @@
                 }
 
                 let w = parsed.w;
-                if (w !== worldId || DB.length === 0) {
+                if (w !== worldId) {
                     worldId = w;
-                    isDownloading = true;
                     msg.className = "db-status loading";
-                    msg.innerText = `⏳ Scarico Database Mondo ${w}...`;
+                    msg.innerText = `Scarico DB Mondo ${w}...`;
                     msg.style.display = 'block';
 
-                    let urlMondo = (w === "327") 
-                        ? "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json"
-                        : `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${w}.json`;
+                    let urlMondo = "";
+                    let urlClassifica = "";
 
-                    fetch(urlMondo + "?v=" + Date.now())
-                        .then(r => {
+                    if (w === "327") {
+                        urlMondo = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json";
+                    } else {
+                        urlMondo = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${w}.json`;
+                        urlClassifica = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_classificamondo${w}.json`;
+                    }
+
+                    let fetches = [
+                        fetch(urlMondo + "?v=" + Date.now()).then(r => {
                             if (!r.ok) throw new Error("DB Mondo mancante");
                             return r.json();
                         })
-                        .then(data => {
+                    ];
+
+                    if (urlClassifica) {
+                        fetches.push(fetch(urlClassifica + "?v=" + Date.now()).then(r => {
+                            if (!r.ok) return [];
+                            return r.json();
+                        }));
+                    } else {
+                        fetches.push(Promise.resolve([]));
+                    }
+
+                    Promise.all(fetches)
+                        .then(([cD, nD]) => {
                             DB = [];
                             PLAYER_NAMES = {};
-                            
-                            // Mappatura esatta basata sulla struttura del file json fornito
-                            if (Array.isArray(data)) {
-                                data.forEach(item => {
-                                    // Verifica campi obbligatori x e y presenti nel file
-                                    if (item && typeof item.x !== 'undefined' && typeof item.y !== 'undefined') {
-                                        DB.push(item);
-                                        // Mappatura player ID (chiave p) e nome player (chiave pn)
-                                        if (item.p) {
-                                            let pName = item.pn; 
-                                            if (pName && !PLAYER_NAMES[item.p]) {
-                                                PLAYER_NAMES[item.p] = pName;
-                                            }
-                                        }
+
+                            const f = (n) => {
+                                if (Array.isArray(n)) n.forEach(f);
+                                else if (n && n.x) {
+                                    n.p = n.p || n.pid || 0;
+                                    DB.push(n);
+                                    if (w === "327" && n.p && n.pn) {
+                                        PLAYER_NAMES[n.p] = n.pn;
                                     }
-                                });
-                            }
-                            
-                            isDownloading = false;
-                            
-                            if(DB.length === 0) {
-                                msg.className = "db-status error";
-                                msg.innerText = "Errore: Il database scaricato non contiene dati validi.";
-                            } else {
-                                identifyUser(parsed, msg);
-                            }
+                                }
+                                else if (typeof n === 'object') Object.values(n).forEach(f);
+                            };
+                            f(cD);
+
+                            if (Array.isArray(nD)) nD.forEach(p => { PLAYER_NAMES[p.id || p.p] = p.nick || p.name || p.n; });
+
+                            identifyUser(parsed, msg);
                         }).catch((err) => {
                             console.error(err);
-                            isDownloading = false;
                             msg.className = "db-status error";
-                            msg.innerText = `Errore download DB Mondo ${w}.`;
+                            msg.innerText = `Errore: Impossibile scaricare DB Mondo ${w}`;
                         });
-                } else { 
-                    identifyUser(parsed, msg); 
-                }
+                } else { identifyUser(parsed, msg); }
             } else {
                 msg.style.display = "none";
             }
         }
 
         function identifyUser(parsed, msgElement) {
-            if (isDownloading) return; 
-
             myPID = null; myCastles = [];
             if (parsed.type === 'player') myPID = parsed.id;
 
             if (myPID) {
-                // Filtro castelli per player ID (chiave p nel file)
-                myCastles = DB.filter(c => String(c.p) === String(myPID));
+                myCastles = DB.filter(c => c.p === myPID);
                 if (myCastles.length > 0) {
-                    // Recupero nome tramite chiave pn rilevata nel database
-                    let pName = PLAYER_NAMES[myPID] || myCastles[0].pn || "Giocatore";
                     msgElement.className = "db-status success";
-                    msgElement.innerText = `✅ Identificato: ${pName} (${myCastles.length} castelli) - DB Pronto`;
+                    msgElement.innerText = `✅ Identificato: ${PLAYER_NAMES[myPID] || "Giocatore"} (${myCastles.length} castelli)`;
                 } else {
                     msgElement.className = "db-status error";
-                    msgElement.innerText = `⚠ Nessun castello trovato per ID ${myPID}. Assicurati di essere in questo mondo.`;
+                    msgElement.innerText = `⚠ Nessun castello trovato per ID ${myPID}`;
                 }
             }
         }
@@ -670,29 +670,22 @@
         }
 
         function startCalc() {
-            if (isDownloading) return alert("Attendere il download del database.");
-            if (!DB || DB.length === 0) return alert("Database non caricato correttamente.");
-            if (myCastles.length === 0) return alert("Inserire prima un link attaccante valido per caricare i propri castelli.");
+            if (!DB || DB.length === 0) return alert("Attendi il completamento del download DB.");
+            if (myCastles.length === 0) return alert("Devi prima identificarti inserendo il TUO link nel primo campo.");
 
             let dVal = document.getElementById('inDate').value;
             let tVal = document.getElementById('inTime').value;
-            if (!dVal || !tVal) return alert("Inserire Data e Ora di impatto!");
+            if (!dVal || !tVal) return alert("Inserisci Data e Ora di impatto!");
 
             let rawTargets = document.getElementById('inTargets').value.split('\n');
             targetsList = [];
 
             rawTargets.forEach(line => {
                 let lk = parseLK(line);
-                if (lk && typeof lk.x !== 'undefined' && typeof lk.y !== 'undefined') {
+                if (lk && lk.x !== undefined && lk.y !== undefined) {
                     let targetObj = DB.find(c => c.x === lk.x && c.y === lk.y);
-                    let tName = "Sconosciuto";
-                    let tCastleName = "Castello";
-                    
-                    if (targetObj) {
-                        // Utilizzo chiave pn per il nome del player e chiave n per il nome del castello
-                        tName = PLAYER_NAMES[targetObj.p] || targetObj.pn || "Giocatore";
-                        tCastleName = targetObj.n || "Castello";
-                    }
+                    let tName = targetObj ? (PLAYER_NAMES[targetObj.p] || targetObj.n || "Sconosciuto") : "Coordinate";
+                    let tCastleName = targetObj && targetObj.n ? targetObj.n : "Castello";
 
                     let bestSource = null;
                     let maxDist = -1;
@@ -701,33 +694,30 @@
                         if (d > maxDist) { maxDist = d; bestSource = source; }
                     });
 
-                    if (bestSource) {
-                        let typeCode = bestSource.t || 0;
-                        let habInfo = getHabitatInfo(typeCode);
-                        // Nome del castello sorgente dalla chiave n del database
-                        let sName = bestSource.n || "Mio Castello";
+                    let typeCode = bestSource.t || 0;
+                    let habInfo = getHabitatInfo(typeCode);
+                    let sName = bestSource.n || "Mio Castello";
 
-                        targetsList.push({
-                            coords: lk,
-                            name: tName,
-                            castleName: tCastleName,
-                            source: bestSource,
-                            sourceName: sName,
-                            dist: maxDist,
-                            detectedHabitat: habInfo.type,
-                            habLabel: habInfo.label,
-                            habIcon: habInfo.icon
-                        });
-                    }
+                    targetsList.push({
+                        coords: lk,
+                        name: tName,
+                        castleName: tCastleName,
+                        source: bestSource,
+                        sourceName: sName,
+                        dist: maxDist,
+                        detectedHabitat: habInfo.type,
+                        habLabel: habInfo.label,
+                        habIcon: habInfo.icon
+                    });
                 }
             });
 
-            if (targetsList.length === 0) return alert("Nessun bersaglio valido trovato nelle coordinate inserite.");
+            if (targetsList.length === 0) return alert("Nessun target valido inserito nel box.");
 
             document.getElementById('resArea').classList.remove('hidden');
-            let impactTime = new Date(dVal + "T" + tVal);
+            let impactDate = new Date(dVal + "T" + tVal);
             document.getElementById('displayImpactTime').innerText =
-                `${pad(impactTime.getDate())}/${pad(impactTime.getMonth() + 1)} ore ${pad(impactTime.getHours())}:${pad(impactTime.getMinutes())}`;
+                `${pad(impactDate.getDate())}/${pad(impactDate.getMonth() + 1)} ore ${pad(impactDate.getHours())}:${pad(impactDate.getMinutes())}`;
             document.getElementById('resArea').scrollIntoView({ behavior: 'smooth' });
             renderResults();
         }
