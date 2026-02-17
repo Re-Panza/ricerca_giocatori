@@ -465,7 +465,6 @@
 
     <script>
         let dbCastelli = [];
-        let dbNomiMap = {}; // Mappa ID -> Nome
         let mondoCaricatoAttualmente = "";
 
         async function startSearch() {
@@ -501,7 +500,6 @@
             namedMatches.forEach(m => {
                 const nome = m[1].trim();
                 const id = parseInt(m[2]);
-                const mondo = m[3];
                 mapIdToNameInput[id] = nome;
             });
 
@@ -520,7 +518,7 @@
                 if (!mondoScelto) mondoScelto = mondo;
             });
 
-            // 2. Configurazione Database Unico
+            // 2. Configurazione Database (SOLO JSON UNIFICATO)
             let urlDBUnico;
             const mondoStr = String(mondoScelto).trim();
 
@@ -530,28 +528,13 @@
                 urlDBUnico = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${mondoStr}.json`;
             }
 
-            // 3. Caricamento Dati Unico
+            // 3. Caricamento Dati
             if (mondoCaricatoAttualmente !== mondoStr) {
                 try {
                     const response = await fetch(urlDBUnico + "?v=" + Date.now());
                     if (!response.ok) throw new Error("File database non trovato: " + response.status);
                     
-                    const datiUnici = await response.json();
-
-                    dbCastelli = datiUnici;
-
-                    // Costruiamo la mappa ID -> Nome utilizzando il campo "pn" del nuovo database
-                    dbNomiMap = {};
-                    if (Array.isArray(datiUnici)) {
-                        datiUnici.forEach(c => {
-                            const n = c.pn; 
-                            const pid = c.p;
-                            if (pid && n && !dbNomiMap[pid]) {
-                                dbNomiMap[parseInt(pid)] = n;
-                            }
-                        });
-                    }
-
+                    dbCastelli = await response.json();
                     mondoCaricatoAttualmente = mondoStr;
                 } catch (err) {
                     console.error(err);
@@ -572,6 +555,7 @@
                 return;
             }
 
+            // Raggruppamento per Giocatore
             const gruppiPerGiocatore = {};
             castelliTrovati.forEach(c => {
                 if (!gruppiPerGiocatore[c.p]) {
@@ -585,29 +569,36 @@
                 const idNumerico = parseInt(pid);
                 const castelli = gruppiPerGiocatore[pid];
 
+                // Ordina castelli per punti decrescenti
                 castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
 
                 const totalePunti = castelli.reduce((acc, c) => acc + (c.pt || 0), 0);
-                const nomeGiocatore = mapIdToNameInput[idNumerico] || dbNomiMap[idNumerico] || "ID: " + pid;
+                
+                // Nome: se lo ha incollato l'utente lo usiamo, altrimenti lo peschiamo da "pn" dal database
+                const nomeGiocatore = mapIdToNameInput[idNumerico] || castelli[0].pn || "Sconosciuto (ID: " + pid + ")";
+
+                // Inattività: ci fidiamo ciecamente del Python. Se ha messo i: true, è inattivo. 
+                // Controlliamo il primo castello (o volendo "some" controlla se almeno uno è inattivo)
+                const isInattivo = castelli.some(c => c.i === true);
 
                 return {
                     id: idNumerico,
                     nome: nomeGiocatore,
                     castelli: castelli,
-                    puntiTotali: totalePunti
+                    puntiTotali: totalePunti,
+                    isInactive: isInattivo
                 };
             });
 
+            // Ordina dal più grande al più piccolo
             listaGiocatori.sort((a, b) => b.puntiTotali - a.puntiTotali);
 
+            // Renderizza a schermo
             listaGiocatori.forEach(giocatore => {
-                // Determina l'inattività in base alla presenza della "stringa inattivo" f o il vecchio i
-                const isInactive = giocatore.castelli[0].f !== undefined || giocatore.castelli[0].i === true;
-                
                 let nomeDisplay = giocatore.nome;
                 nomeDisplay += ` <span style="font-size:12px; color:#93a4c7">(${giocatore.puntiTotali.toLocaleString()} pt)</span>`;
 
-                if (isInactive) {
+                if (giocatore.isInactive) {
                     nomeDisplay += ` <span style="color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">⚠️ INATTIVO</span>`;
                 } else {
                     nomeDisplay += ` <span style="color:#34d399; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">✅ ATTIVO</span>`;
