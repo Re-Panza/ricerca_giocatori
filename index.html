@@ -83,7 +83,6 @@
             max-width: 500px;
             margin: 0 auto 24px auto;
             text-align: left;
-            /* Allineamento a sinistra */
         }
 
         .page-title h2 {
@@ -116,7 +115,6 @@
             font-weight: 500;
         }
 
-        /* ISTRUZIONI STILE */
         .instructions {
             text-align: center;
             font-size: 14px;
@@ -208,7 +206,6 @@
             color: var(--muted);
         }
 
-        /* Stile Risultati */
         #risultati {
             margin-top: 24px;
         }
@@ -285,7 +282,6 @@
             cursor: pointer;
         }
 
-        /* --- STILE FOOTER & PAYPAL UNIFORMATO --- */
         .paypal-footer {
             text-align: center;
             margin-top: 60px;
@@ -315,7 +311,6 @@
             box-shadow: 0 6px 20px rgba(0, 112, 186, 0.5);
         }
 
-        /* --- STILE ASSISTENTE COPIATO --- */
         #ai-assistant-container {
             position: fixed;
             bottom: 20px;
@@ -487,11 +482,9 @@
             const playerPattern = /(?:Nome\s*giocatore|Giocatore)\s*:\s*([^\n\r]+)\s+(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
             const namedMatches = [...input.matchAll(playerPattern)];
 
-            // Regex universale per player link
             const simplePlayerPattern = /(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
             const simplePlayerMatches = [...input.matchAll(simplePlayerPattern)];
 
-            // Regex Alleanze
             const alliancePattern = /(?:l\+k:\/\/|https?:\/\/.*?)alliance\?(\d+)&(\d+)/gi;
             const allianceMatches = [...input.matchAll(alliancePattern)];
 
@@ -501,12 +494,10 @@
                 return;
             }
 
-            // Mappatura ID -> Nome (da input utente)
             const mapIdToNameInput = {};
             const targetPlayerIds = new Set();
             let mondoScelto = null;
 
-            // Priorità ai match con nome esplicito
             namedMatches.forEach(m => {
                 const nome = m[1].trim();
                 const id = parseInt(m[2]);
@@ -514,7 +505,6 @@
                 mapIdToNameInput[id] = nome;
             });
 
-            // Aggiungi tutti i player ID trovati
             simplePlayerMatches.forEach(m => {
                 const id = parseInt(m[1]);
                 const mondo = m[2];
@@ -527,57 +517,36 @@
                 const id = parseInt(m[1]);
                 const mondo = m[2];
                 targetAllianceIds.add(id);
-                if (!mondoScelto) mondoScelto = mondo; // Se non c'era player, usa mondo ally
+                if (!mondoScelto) mondoScelto = mondo;
             });
 
-            // 2. Configurazione Database (URL CORRETTI CON RAW)
-            let urlDBCastelli;
-            let urlDBNomi = null;
-
-            // Forziamo la conversione in stringa per evitare errori di tipo
+            // 2. Configurazione Database Unico
+            let urlDBUnico;
             const mondoStr = String(mondoScelto).trim();
 
             if (mondoStr === "327") {
-                // *** CONFIGURAZIONE SPECIFICA PER MONDO 327 ***
-                // Castelli -> lk_scanner
-                urlDBCastelli = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json";
-                // Nomi -> scanner_classifica327
-                urlDBNomi = "https://raw.githubusercontent.com/Re-Panza/scanner_classifica327/main/database_classificamondo327.json";
+                urlDBUnico = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json";
             } else {
-                // *** CONFIGURAZIONE STANDARD (lk_database) PER ALTRI MONDI (es. 237, 337) ***
-                urlDBCastelli = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${mondoStr}.json`;
-                urlDBNomi = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_classificamondo${mondoStr}.json`;
+                urlDBUnico = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${mondoStr}.json`;
             }
 
-            // 3. Caricamento Dati (Parallelo)
+            // 3. Caricamento Dati Unico
             if (mondoCaricatoAttualmente !== mondoStr) {
                 try {
-                    const promises = [fetch(urlDBCastelli + "?v=" + Date.now()).then(r => {
-                        if (!r.ok) throw new Error("File castelli non trovato: " + r.status);
-                        return r.json();
-                    })];
+                    const response = await fetch(urlDBUnico + "?v=" + Date.now());
+                    if (!response.ok) throw new Error("File database non trovato: " + response.status);
+                    
+                    const datiUnici = await response.json();
 
-                    if (urlDBNomi) {
-                        promises.push(
-                            fetch(urlDBNomi + "?v=" + Date.now())
-                                .then(r => r.ok ? r.json() : [])
-                                .catch(() => [])
-                        );
-                    } else {
-                        promises.push(Promise.resolve([]));
-                    }
+                    dbCastelli = datiUnici;
 
-                    const [datiCastelli, datiNomi] = await Promise.all(promises);
-
-                    dbCastelli = datiCastelli;
-
-                    // Costruiamo la mappa ID -> Nome
+                    // Costruiamo la mappa ID -> Nome utilizzando il campo "pn" del nuovo database
                     dbNomiMap = {};
-                    if (Array.isArray(datiNomi)) {
-                        datiNomi.forEach(p => {
-                            const n = p.nick || p.name || p.n;
-                            const pid = p.id || p.p;
-                            if (pid && n) {
+                    if (Array.isArray(datiUnici)) {
+                        datiUnici.forEach(c => {
+                            const n = c.pn; 
+                            const pid = c.p;
+                            if (pid && n && !dbNomiMap[pid]) {
                                 dbNomiMap[parseInt(pid)] = n;
                             }
                         });
@@ -586,7 +555,7 @@
                     mondoCaricatoAttualmente = mondoStr;
                 } catch (err) {
                     console.error(err);
-                    alert(`Impossibile caricare i database per il Mondo ${mondoStr}.\nErrore: ${err.message}\nLink tentato: ${urlDBCastelli}`);
+                    alert(`Impossibile caricare il database per il Mondo ${mondoStr}.\nErrore: ${err.message}\nLink tentato: ${urlDBUnico}`);
                     return;
                 }
             }
@@ -603,7 +572,6 @@
                 return;
             }
 
-            // Raggruppamento per Giocatore
             const gruppiPerGiocatore = {};
             castelliTrovati.forEach(c => {
                 if (!gruppiPerGiocatore[c.p]) {
@@ -613,18 +581,13 @@
             });
 
             // 5. ORDINAMENTO E RENDER
-            // Creiamo un array di oggetti per poterli ordinare
             const listaGiocatori = Object.keys(gruppiPerGiocatore).map(pid => {
                 const idNumerico = parseInt(pid);
                 const castelli = gruppiPerGiocatore[pid];
 
-                // Ordina castelli per punti decrescenti
                 castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
 
-                // Calcola il punteggio totale del giocatore (somma dei castelli visibili)
                 const totalePunti = castelli.reduce((acc, c) => acc + (c.pt || 0), 0);
-
-                // Risoluzione Nome
                 const nomeGiocatore = mapIdToNameInput[idNumerico] || dbNomiMap[idNumerico] || "ID: " + pid;
 
                 return {
@@ -635,15 +598,13 @@
                 };
             });
 
-            // Ordina la lista giocatori dal più "grosso" al più piccolo
             listaGiocatori.sort((a, b) => b.puntiTotali - a.puntiTotali);
 
-            // Renderizza a schermo
             listaGiocatori.forEach(giocatore => {
-                const isInactive = giocatore.castelli[0].i === true;
+                // Determina l'inattività in base alla presenza della "stringa inattivo" f o il vecchio i
+                const isInactive = giocatore.castelli[0].f !== undefined || giocatore.castelli[0].i === true;
+                
                 let nomeDisplay = giocatore.nome;
-
-                // Aggiungiamo i punti totali al nome per chiarezza
                 nomeDisplay += ` <span style="font-size:12px; color:#93a4c7">(${giocatore.puntiTotali.toLocaleString()} pt)</span>`;
 
                 if (isInactive) {
@@ -668,7 +629,6 @@
                 const tipo = getHabitatInfo(c.t).label;
                 const link = `l+k://coordinates?${c.x},${c.y}&${mondo}`;
                 const punti = (c.pt || 0).toLocaleString();
-                const coordStr = `${c.x},${c.y}`;
 
                 return `
                     <div class="castello-card">
@@ -716,10 +676,8 @@
             a.click();
         }
 
-        // 2. Gestione Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Versione per forzare aggiornamento SW
                 if (typeof APP_VERSION !== 'undefined') {
                     navigator.serviceWorker.register('sw.js?v=' + APP_VERSION);
                 } else {
