@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://re-panza.github.io/lk_tool/icona.png">
 
-    <title>Ricerca Giocatore - L&K Tool</title>
+    <title>Cronologia Giocatore - L&K Tool</title>
 
     <script src="https://re-panza.github.io/lk_tool/version.js"></script>
     <script>
@@ -29,6 +29,7 @@
             --success: #34d399;
             --danger: #ef4444;
             --dangerBg: rgba(239, 68, 68, .12);
+            --gold: #fbbf24;
         }
 
         * {
@@ -115,35 +116,87 @@
             font-weight: 500;
         }
 
-        .instructions {
-            text-align: center;
-            font-size: 14px;
-            color: #e8eefc;
-            margin-bottom: 16px;
-            line-height: 1.5;
-            opacity: 0.9;
+        /* TABS UI */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
-        textarea {
-            width: 100%;
-            height: 140px;
-            padding: 16px;
-            margin-bottom: 20px;
+        .tab-btn {
+            flex: 1;
+            padding: 14px 10px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+            box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);
+        }
+
+        /* SEZIONI NASCOSTE DI DEFAULT */
+        .search-section {
+            display: none;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--border);
             border-radius: 16px;
+            padding: 20px 16px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .search-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input[type="text"], 
+        .search-section select {
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 12px;
             border: 1px solid var(--border);
             background: rgba(255, 255, 255, .05);
             color: var(--text);
             outline: none;
             font-size: 16px;
             font-family: inherit;
-            resize: none;
             -webkit-user-select: text;
             user-select: text;
             transition: border-color 0.2s;
         }
 
-        textarea:focus {
+        input[type="text"]:focus, 
+        .search-section select:focus {
             border-color: var(--accent);
+        }
+
+        .search-section select {
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2393a4c7' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+        }
+
+        .search-section select option {
+            background: var(--bg);
+            color: var(--text);
         }
 
         #errorBanner {
@@ -152,7 +205,7 @@
             border: 1px solid rgba(239, 68, 68, .4);
             background: var(--dangerBg);
             color: #ffcfcf;
-            border-radius: 16px;
+            border-radius: 12px;
             padding: 14px;
             font-size: 14px;
             font-weight: 600;
@@ -161,15 +214,14 @@
 
         .btn-cerca {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             background: var(--accent);
             border: none;
             font-weight: 800;
-            font-size: 17px;
-            border-radius: 16px;
+            font-size: 16px;
+            border-radius: 12px;
             cursor: pointer;
             color: #0f172a;
-            margin-bottom: 12px;
             transition: transform 0.1s, opacity 0.2s;
         }
 
@@ -178,108 +230,57 @@
             opacity: 0.9;
         }
 
-        .btn-export-box {
-            display: flex;
-            gap: 12px;
-            margin-top: 10px;
-            display: none;
-        }
-
-        .btn-exp {
-            flex: 1;
-            padding: 14px;
-            border-radius: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 14px;
-            border: 1px solid var(--border);
-        }
-
-        .btn-sel {
-            background: rgba(52, 211, 153, 0.1);
-            color: var(--success);
-            border-color: rgba(52, 211, 153, 0.3);
-        }
-
-        .btn-all {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--muted);
-        }
-
+        /* Stile Risultati Cronologia */
         #risultati {
-            margin-top: 24px;
-        }
-
-        .player-group {
-            margin-bottom: 16px;
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, .02);
-        }
-
-        .player-header {
-            padding: 18px;
-            cursor: pointer;
+            margin-top: 10px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 700;
-            font-size: 16px;
-            color: var(--accent);
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .player-content {
-            display: none;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            border-top: 1px solid var(--border);
-        }
-
-        .player-header.active+.player-content {
-            display: block;
-        }
-
-        .castello-card {
+        .history-card {
             background: rgba(255, 255, 255, .03);
-            padding: 14px;
-            margin-bottom: 10px;
-            border-radius: 14px;
+            padding: 16px;
+            border-radius: 16px;
             border: 1px solid var(--border);
             display: flex;
-            align-items: center;
-            gap: 14px;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .hab-check {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: var(--accent);
+        .history-event {
+            margin-bottom: 8px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        
+        .history-event:last-child {
+            margin-bottom: 0;
         }
 
-        .castello-nome {
-            font-weight: 700;
-            color: #fff;
-            display: block;
-            font-size: 16px;
-        }
-
-        .castello-info {
-            font-size: 13px;
-            color: var(--muted);
-            margin-top: 3px;
-        }
-
-        .castello-link {
-            color: var(--accent);
-            text-decoration: none;
-            font-family: monospace;
+        .history-date {
             font-size: 12px;
-            display: block;
-            margin-top: 8px;
-            opacity: 0.6;
-            cursor: pointer;
+            color: var(--accent);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .history-content {
+            font-size: 15px;
+            color: #fff;
+            line-height: 1.4;
+        }
+
+        .history-highlight {
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .history-type-icon {
+            font-size: 18px;
+            margin-right: 6px;
         }
 
         .paypal-footer {
@@ -305,12 +306,7 @@
             border: none;
         }
 
-        .paypal-link:hover {
-            background: #005ea6;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 112, 186, 0.5);
-        }
-
+        /* --- STILE ASSISTENTE --- */
         #ai-assistant-container {
             position: fixed;
             bottom: 20px;
@@ -407,26 +403,36 @@
     </div>
 
     <div class="page-title">
-        <h2>🔍 Ricerca Target</h2>
+        <h2>📜 Storico Giocatore</h2>
         <div class="search-options">
-            <div class="search-option">👤 <span>Giocatori</span></div>
-            <div class="search-option">🛡️ <span>Alleanze</span></div>
-            <div class="search-option">💤 <span>Inattivi</span></div>
+            <div class="search-option">👤 <span>Cambi Nome</span></div>
+            <div class="search-option">🛡️ <span>Cambi Alleanza</span></div>
         </div>
     </div>
 
     <div class="container">
 
-        <div id="errorBanner">⚠️ Incolla 'Nome giocatore:' e il link 'l+k://player'</div>
+        <div class="tabs">
+            <button id="btnTabPlayer" class="tab-btn" onclick="switchTab('player')">👤 Ricerca Giocatore</button>
+            <button id="btnTabWorld" class="tab-btn" onclick="switchTab('world')">🌍 Ricerca per Mondo</button>
+        </div>
 
-        <textarea id="inputText"
-            placeholder="Incolla qui il link profilo o link alleanza...&#10; ti darò tutti i possedimenti e dirò se sono attivi o meno. Seleziona ciò che ti serve e scarica la lista da copiare"></textarea>
+        <div id="errorBanner">⚠️ Attenzione: Messaggio di errore generico.</div>
 
-        <button class="btn-cerca" onclick="startSearch()">AVVIA RICERCA</button>
+        <div id="sectionPlayer" class="search-section">
+            <input type="text" id="inputText" placeholder="Incolla link l+k del giocatore...">
+            <button class="btn-cerca" onclick="startSearch('player')">CERCA GIOCATORE</button>
+        </div>
 
-        <div id="export-buttons" class="btn-export-box">
-            <button class="btn-exp btn-sel" onclick="exportReport(true)">📥 SCARICA SELEZIONATI</button>
-            <button class="btn-exp btn-all" onclick="exportReport(false)">📥 SCARICA TUTTI</button>
+        <div id="sectionWorld" class="search-section">
+            <select id="worldSelect">
+                <option value="">Seleziona un mondo...</option>
+                <option value="327">Italia VI (regioni)</option>
+                <option value="337">Italia 15</option>
+                <option value="343">Italia VII (regioni)</option>
+                <option value="296">Italia V</option>
+            </select>
+            <button class="btn-cerca" onclick="startSearch('world')">ESPLORA MONDO</button>
         </div>
 
         <div id="risultati"></div>
@@ -448,8 +454,7 @@
                 <span onclick="toggleAI()" style="cursor:pointer">×</span>
             </div>
             <div id="ai-content">
-                <p>Ciao! Sono Re Panza AI. Chiedimi pure consiglio se non comprendi il gioco, oppure chiacchieriamo un
-                    pò.</p>
+                <p>Ciao! Sono Re Panza AI. Chiedimi pure consiglio se non comprendi il gioco, oppure chiacchieriamo un pò.</p>
             </div>
             <div class="ai-input-area">
                 <input type="text" id="ai-input" placeholder="Scrivi al Re...">
@@ -464,216 +469,277 @@
     <script src="https://re-panza.github.io/lk_tool/common.js"></script>
 
     <script>
-        let dbCastelli = [];
-        let mondoCaricatoAttualmente = "";
+        // Mappa per tradurre il numero mondo al nome pulito
+        const worldNamesMap = {
+            "327": "Italia VI (regioni)",
+            "337": "Italia 15",
+            "343": "Italia VII (regioni)",
+            "296": "Italia V"
+        };
 
-        async function startSearch() {
-            const input = document.getElementById('inputText').value;
+        function switchTab(tabId) {
+            document.getElementById('sectionPlayer').classList.remove('active');
+            document.getElementById('sectionWorld').classList.remove('active');
+            document.getElementById('btnTabPlayer').classList.remove('active');
+            document.getElementById('btnTabWorld').classList.remove('active');
+            
+            document.getElementById('errorBanner').style.display = 'none';
+            document.getElementById('risultati').innerHTML = '';
+
+            if(tabId === 'player') {
+                document.getElementById('sectionPlayer').classList.add('active');
+                document.getElementById('btnTabPlayer').classList.add('active');
+            } else if (tabId === 'world') {
+                document.getElementById('sectionWorld').classList.add('active');
+                document.getElementById('btnTabWorld').classList.add('active');
+            }
+        }
+
+        function formatTimestamp(unixTime) {
+            const date = new Date(unixTime * 1000);
+            const g = String(date.getDate()).padStart(2, '0');
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const a = date.getFullYear();
+            const ore = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return `${g}/${m}/${a} alle ${ore}:${min}`;
+        }
+
+        async function startSearch(mode) {
             const resDiv = document.getElementById('risultati');
-            const exportDiv = document.getElementById('export-buttons');
             const errorBanner = document.getElementById('errorBanner');
 
             resDiv.innerHTML = "";
             errorBanner.style.display = "none";
-            exportDiv.style.display = "none";
 
-            // 1. Parsing Input
-            const playerPattern = /(?:Nome\s*giocatore|Giocatore)\s*:\s*([^\n\r]+)\s+(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
-            const namedMatches = [...input.matchAll(playerPattern)];
+            let playerId = null;
+            let mondoStr = null;
+            let displayWorldName = "";
 
-            const simplePlayerPattern = /(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/gi;
-            const simplePlayerMatches = [...input.matchAll(simplePlayerPattern)];
-
-            const alliancePattern = /(?:l\+k:\/\/|https?:\/\/.*?)alliance\?(\d+)&(\d+)/gi;
-            const allianceMatches = [...input.matchAll(alliancePattern)];
-
-            if (simplePlayerMatches.length === 0 && allianceMatches.length === 0) {
-                errorBanner.innerHTML = "⚠️ Incolla un link giocatore o alleanza valido.";
-                errorBanner.style.display = "block";
-                return;
-            }
-
-            const mapIdToNameInput = {};
-            const targetPlayerIds = new Set();
-            let mondoScelto = null;
-
-            namedMatches.forEach(m => {
-                const nome = m[1].trim();
-                const id = parseInt(m[2]);
-                mapIdToNameInput[id] = nome;
-            });
-
-            simplePlayerMatches.forEach(m => {
-                const id = parseInt(m[1]);
-                const mondo = m[2];
-                targetPlayerIds.add(id);
-                if (!mondoScelto) mondoScelto = mondo;
-            });
-
-            const targetAllianceIds = new Set();
-            allianceMatches.forEach(m => {
-                const id = parseInt(m[1]);
-                const mondo = m[2];
-                targetAllianceIds.add(id);
-                if (!mondoScelto) mondoScelto = mondo;
-            });
-
-            // 2. Configurazione Database (SOLO JSON UNIFICATO)
-            let urlDBUnico;
-            const mondoStr = String(mondoScelto).trim();
-
-            if (mondoStr === "327") {
-                urlDBUnico = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_mondo_327.json";
-            } else {
-                urlDBUnico = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_mondo_${mondoStr}.json`;
-            }
-
-            // 3. Caricamento Dati
-            if (mondoCaricatoAttualmente !== mondoStr) {
-                try {
-                    const response = await fetch(urlDBUnico + "?v=" + Date.now());
-                    if (!response.ok) throw new Error("File database non trovato: " + response.status);
-                    
-                    dbCastelli = await response.json();
-                    mondoCaricatoAttualmente = mondoStr;
-                } catch (err) {
-                    console.error(err);
-                    alert(`Impossibile caricare il database per il Mondo ${mondoStr}.\nErrore: ${err.message}\nLink tentato: ${urlDBUnico}`);
+            if (mode === 'player') {
+                const input = document.getElementById('inputText').value.trim();
+                if (input === "") {
+                    errorBanner.style.display = "block";
+                    errorBanner.innerText = "⚠️ Incolla un link giocatore valido.";
                     return;
                 }
-            }
 
-            // 4. Filtraggio Castelli
-            let castelliTrovati = dbCastelli.filter(c => {
-                if (targetPlayerIds.has(c.p)) return true;
-                if (targetAllianceIds.has(c.a)) return true;
-                return false;
-            });
-
-            if (castelliTrovati.length === 0) {
-                resDiv.innerHTML = `<p style="text-align:center; color:#93a4c7; margin-top:20px;">Nessun castello trovato nel Mondo ${mondoStr}.</p>`;
-                return;
-            }
-
-            // Raggruppamento per Giocatore
-            const gruppiPerGiocatore = {};
-            castelliTrovati.forEach(c => {
-                if (!gruppiPerGiocatore[c.p]) {
-                    gruppiPerGiocatore[c.p] = [];
+                let parsedLink = typeof parseLK === 'function' ? parseLK(input) : null;
+                if (!parsedLink && typeof parseInputLink === 'function') {
+                    let p = parseInputLink(input);
+                    if (p && p.type === 'player') parsedLink = { p: p.id, w: p.w };
                 }
-                gruppiPerGiocatore[c.p].push(c);
-            });
 
-            // 5. ORDINAMENTO E RENDER
-            const listaGiocatori = Object.keys(gruppiPerGiocatore).map(pid => {
-                const idNumerico = parseInt(pid);
-                const castelli = gruppiPerGiocatore[pid];
-
-                // Ordina castelli per punti decrescenti
-                castelli.sort((a, b) => (b.pt || 0) - (a.pt || 0));
-
-                const totalePunti = castelli.reduce((acc, c) => acc + (c.pt || 0), 0);
+                if (!parsedLink || !parsedLink.p || !parsedLink.w) {
+                    const match = input.match(/(?:l\+k:\/\/|https?:\/\/.*?)player\?(\d+)&(\d+)/i);
+                    if (match) {
+                        parsedLink = { p: match[1], w: match[2] };
+                    } else {
+                        errorBanner.style.display = "block";
+                        errorBanner.innerText = "⚠️ Incolla un link giocatore valido.";
+                        return;
+                    }
+                }
                 
-                // Nome: se lo ha incollato l'utente lo usiamo, altrimenti lo peschiamo da "pn" dal database
-                const nomeGiocatore = mapIdToNameInput[idNumerico] || castelli[0].pn || "Sconosciuto (ID: " + pid + ")";
+                playerId = parseInt(parsedLink.p);
+                mondoStr = String(parsedLink.w).trim();
+                displayWorldName = worldNamesMap[mondoStr] || `Mondo ${mondoStr}`;
 
-                // Inattività: ci fidiamo ciecamente del Python. Se ha messo i: true, è inattivo. 
-                // Controlliamo il primo castello (o volendo "some" controlla se almeno uno è inattivo)
-                const isInattivo = castelli.some(c => c.i === true);
+            } else if (mode === 'world') {
+                const selectEl = document.getElementById('worldSelect');
+                const selectedWorld = selectEl.value;
+                if (!selectedWorld) {
+                    errorBanner.style.display = "block";
+                    errorBanner.innerText = "⚠️ Seleziona un mondo dal menu a tendina.";
+                    return;
+                }
+                mondoStr = selectedWorld;
+                displayWorldName = selectEl.options[selectEl.selectedIndex].text;
+            }
+            
+            resDiv.innerHTML = `<div style="text-align:center; color:var(--gold);">⏳ Ricerca nella biblioteca reale in corso...</div>`;
 
-                return {
-                    id: idNumerico,
-                    nome: nomeGiocatore,
-                    castelli: castelli,
-                    puntiTotali: totalePunti,
-                    isInactive: isInattivo
-                };
-            });
+            let urlCronologia, urlDatabase;
+            if (mondoStr === "327") {
+                urlCronologia = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/cronologia_327.json";
+                urlDatabase = "https://raw.githubusercontent.com/Re-Panza/lk_scanner/main/database_327.json";
+            } else {
+                urlCronologia = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/cronologia_${mondoStr}.json`;
+                urlDatabase = `https://raw.githubusercontent.com/Re-Panza/lk_database/main/database_${mondoStr}.json`;
+            }
 
-            // Ordina dal più grande al più piccolo
-            listaGiocatori.sort((a, b) => b.puntiTotali - a.puntiTotali);
+            try {
+                const [resCronologia, resDatabase] = await Promise.all([
+                    fetch(urlCronologia + "?v=" + Date.now()),
+                    fetch(urlDatabase + "?v=" + Date.now()).catch(() => null)
+                ]);
 
-            // Renderizza a schermo
-            listaGiocatori.forEach(giocatore => {
-                let nomeDisplay = giocatore.nome;
-                nomeDisplay += ` <span style="font-size:12px; color:#93a4c7">(${giocatore.puntiTotali.toLocaleString()} pt)</span>`;
-
-                if (giocatore.isInactive) {
-                    nomeDisplay += ` <span style="color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">⚠️ INATTIVO</span>`;
-                } else {
-                    nomeDisplay += ` <span style="color:#34d399; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:bold;">✅ ATTIVO</span>`;
+                if (!resCronologia.ok) {
+                    throw new Error("File cronologia non trovato per questo mondo.");
+                }
+                
+                const historyData = await resCronologia.json();
+                
+                let playersDb = [];
+                if (resDatabase && resDatabase.ok) {
+                    playersDb = await resDatabase.json();
                 }
 
-                renderPlayerGroup(nomeDisplay, giocatore.castelli, resDiv, mondoStr);
-            });
+                // Generazione mappa robusta (supporta Database sia come Array che come Oggetto)
+                const playerMap = {};
+                if (playersDb) {
+                    const playersArray = Array.isArray(playersDb) ? playersDb : Object.values(playersDb);
+                    playersArray.forEach(p => {
+                        if (p && typeof p === 'object') {
+                            let id = p.p || p.id;
+                            if (id) {
+                                playerMap[id] = {
+                                    pn: p.pn,
+                                    an: p.an || ""
+                                };
+                            }
+                        }
+                    });
+                }
 
-            if (listaGiocatori.length > 0) {
-                exportDiv.style.display = "flex";
+                resDiv.innerHTML = "";
+
+                // === MODALITA' 1: RICERCA SINGOLO GIOCATORE ===
+                if (playerId) {
+                    const playerEvents = historyData[playerId] || [];
+                    
+                    if (playerEvents.length === 0) {
+                        resDiv.innerHTML = `<div style="text-align:center; color:var(--muted); padding:20px; border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,0.02);">Nessun cambiamento registrato per questo giocatore nel mondo ${displayWorldName}.</div>`;
+                        return;
+                    }
+
+                    playerEvents.sort((a, b) => b.d - a.d);
+                    
+                    let pName = "";
+                    let pAlliance = "";
+                    
+                    // Cerca il nome: prima nel DB attuale, poi nello storico passati
+                    if (playerMap[playerId] && playerMap[playerId].pn) {
+                        pName = playerMap[playerId].pn;
+                        pAlliance = playerMap[playerId].an;
+                    } else {
+                        const lastCard = playerEvents.find(e => e.type === 'name');
+                        if (lastCard) {
+                            pName = lastCard.new;
+                        } else {
+                            resDiv.innerHTML = `<div style="text-align:center; color:var(--muted); padding:20px; border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,0.02);">Record anomalo: dati identificativi del giocatore non trovati.</div>`;
+                            return;
+                        }
+                    }
+
+                    resDiv.innerHTML += `<div style="margin-bottom: 12px; font-size: 18px; font-weight: 800; color: var(--accent);">👤 ${pName} <span style="font-size: 14px; font-weight: normal; color: var(--muted);">${pAlliance ? '['+pAlliance+']' : ''}</span></div>`;
+
+                    const card = document.createElement('div');
+                    card.className = 'history-card';
+                    renderEvents(playerEvents, card);
+                    resDiv.appendChild(card);
+                } 
+                // === MODALITA' 2: TUTTI I GIOCATORI DEL MONDO ===
+                else {
+                    const allIds = Object.keys(historyData);
+                    let validIds = [];
+
+                    allIds.forEach(id => {
+                        let hasName = false;
+                        if (playerMap[id] && playerMap[id].pn) {
+                            hasName = true;
+                        } else {
+                            const lastCard = historyData[id].find(e => e.type === 'name');
+                            if (lastCard) hasName = true;
+                        }
+
+                        if (hasName) {
+                            validIds.push(id);
+                        } else {
+                            delete historyData[id]; 
+                        }
+                    });
+
+                    if (validIds.length === 0) {
+                        resDiv.innerHTML = `<div style="text-align:center; color:var(--muted); padding:20px; border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,0.02);">La cronologia per il mondo ${displayWorldName} è al momento vuota o priva di record validi.</div>`;
+                        return;
+                    }
+
+                    resDiv.innerHTML += `<div style="margin-bottom: 16px; font-size: 16px; font-weight: bold; color: var(--success);">🌐 Trovati ${validIds.length} giocatori nel mondo ${displayWorldName}:</div>`;
+
+                    validIds.forEach(id => {
+                        const playerEvents = historyData[id];
+                        playerEvents.sort((a, b) => b.d - a.d);
+                        
+                        let pName = "";
+                        let pAlliance = "";
+                        
+                        if (playerMap[id] && playerMap[id].pn) {
+                            pName = playerMap[id].pn;
+                            pAlliance = playerMap[id].an;
+                        } else {
+                            const lastCard = playerEvents.find(e => e.type === 'name');
+                            pName = lastCard.new;
+                        }
+                        
+                        const pCard = document.createElement('div');
+                        pCard.className = 'history-card';
+                        pCard.style.marginBottom = "15px";
+                        pCard.style.borderColor = "var(--accent)";
+                        
+                        pCard.innerHTML = `
+                            <div style="font-size: 16px; font-weight: bold; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px;">
+                                👤 ${pName} <span style="font-size: 13px; color: var(--gold); font-weight: normal;">${pAlliance ? '['+pAlliance+']' : ''}</span>
+                            </div>
+                        `;
+                        
+                        renderEvents(playerEvents, pCard);
+                        resDiv.appendChild(pCard);
+                    });
+                }
+
+            } catch (err) {
+                console.error(err);
+                resDiv.innerHTML = `<div style="text-align:center; color:var(--danger); padding:20px; border:1px solid rgba(239,68,68,0.3); border-radius:16px; background:rgba(239,68,68,0.1);">⚠️ Errore durante il caricamento della cronologia.<br><br><span style="font-size:12px; color:#fff">${err.message}</span></div>`;
             }
         }
 
-        function renderPlayerGroup(nome, castelli, container, mondo) {
-            const group = document.createElement('div');
-            group.className = 'player-group';
-
-            let itemsHtml = castelli.map((c, i) => {
-                const tipo = getHabitatInfo(c.t).label;
-                const link = `l+k://coordinates?${c.x},${c.y}&${mondo}`;
-                const punti = (c.pt || 0).toLocaleString();
-
-                return `
-                    <div class="castello-card">
-                        <input type="checkbox" class="hab-check" 
-                               data-nome="${c.n}" data-tipo="${tipo}" 
-                               data-punti="${punti}" data-link="${link}">
-                        <div style="flex-grow:1">
-                            <span class="castello-nome">
-                                ${i + 1}. ${c.n || 'Senza Nome'} 
-                            </span>
-                            <span class="castello-info"><b>${tipo}</b> • ${punti} pt</span>
-                            <a href="${link}" class="castello-link">
-                                ${link}
-                            </a>
+        function renderEvents(events, container) {
+            events.forEach(event => {
+                const dataFormattata = formatTimestamp(event.d);
+                const div = document.createElement('div');
+                div.className = 'history-event';
+                
+                if (event.type === 'name') {
+                    div.innerHTML = `
+                        <div class="history-date">📅 ${dataFormattata}</div>
+                        <div class="history-content">
+                            <span class="history-type-icon">👤</span> Ha cambiato nome:<br>
+                            Da <span class="history-highlight">"${event.old}"</span> a <span class="history-highlight">"${event.new}"</span>
                         </div>
-                    </div>`;
-            }).join('');
+                    `;
+                } else if (event.type === 'alliance') {
+                    const oldNameDisplay = event.old_name ? event.old_name : (event.old === 0 ? "Nessuna" : "Alleanza Rimossa");
+                    const newNameDisplay = event.new_name ? event.new_name : (event.new === 0 ? "Nessuna" : "Alleanza Rimossa");
+                    
+                    let textDesc = "";
+                    if (event.old === 0) {
+                        textDesc = `È entrato nell'alleanza <span class="history-highlight">${newNameDisplay}</span>`;
+                    } else if (event.new === 0) {
+                        textDesc = `Ha lasciato l'alleanza <span class="history-highlight">${oldNameDisplay}</span>`;
+                    } else {
+                        textDesc = `Ha cambiato alleanza:<br>Da <span class="history-highlight">${oldNameDisplay}</span> a <span class="history-highlight">${newNameDisplay}</span>`;
+                    }
 
-            group.innerHTML = `
-                <div class="player-header" onclick="this.classList.toggle('active'); const content = this.nextElementSibling; content.style.display = content.style.display === 'block' ? 'none' : 'block';">
-                    <span>👤 ${nome} (${castelli.length})</span>
-                    <span>▼</span>
-                </div>
-                <div class="player-content" style="display:none">${itemsHtml}</div>
-            `;
-            container.appendChild(group);
-        }
-
-        function exportReport(soloSelezionati) {
-            const checkboxes = document.querySelectorAll('.hab-check');
-            let testo = "--- REPORT INTELLIGENCE L&K ---\n\n";
-            let count = 0;
-            checkboxes.forEach(cb => {
-                if (!soloSelezionati || cb.checked) {
-                    testo += `${cb.dataset.tipo}: ${cb.dataset.nome} (${cb.dataset.punti} pt)\nLink: ${cb.dataset.link}\n\n`;
-                    count++;
+                    div.innerHTML = `
+                        <div class="history-date">📅 ${dataFormattata}</div>
+                        <div class="history-content">
+                            <span class="history-type-icon">🛡️</span> ${textDesc}
+                        </div>
+                    `;
                 }
-            });
-            if (count === 0) return alert("Nessuna selezione!");
-            const blob = new Blob([testo], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Report_Intelligence.txt`;
-            a.click();
-        }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                if (typeof APP_VERSION !== 'undefined') {
-                    navigator.serviceWorker.register('sw.js?v=' + APP_VERSION);
-                } else {
-                    navigator.serviceWorker.register('sw.js');
-                }
+                
+                container.appendChild(div);
             });
         }
     </script>
